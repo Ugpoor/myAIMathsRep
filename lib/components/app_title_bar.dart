@@ -3,26 +3,22 @@ import 'package:flutter/material.dart';
 
 class AppTitleBar extends StatelessWidget {
   final String title;
-  final bool showChatSuffix;
+  final String lang;
 
   const AppTitleBar({
     super.key,
     required this.title,
-    this.showChatSuffix = false,
+    this.lang = 'cn',
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     return Container(
-      height: screenHeight * 0.08,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      height: 40,
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 20),
       decoration: const BoxDecoration(
         color: Color(0xFFFF69B4),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.zero,
       ),
       child: Center(
         child: Text(

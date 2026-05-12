@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../components/app_title_bar.dart';
 import '../../components/pull_up_control.dart';
@@ -12,7 +11,10 @@ class PullUpControlTest extends StatelessWidget {
       backgroundColor: const Color(0xFFFFE4E9),
       body: Column(
         children: [
-          const AppTitleBar(title: 'PullUpControl 测试'),
+          const AppTitleBar(
+            title: 'PullUpControl 测试',
+            lang: 'cn',
+          ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -44,7 +46,6 @@ class PullUpControlTest extends StatelessWidget {
                               const SnackBar(content: Text('点击了收起！')),
                             );
                           },
-                          label: '点击测试',
                         ),
                       ],
                     ),
@@ -56,7 +57,6 @@ PullUpControl(
   onPullUp: () {
     // 收起操作
   },
-  label: '收起聊天',
 )
 '''),
                   const SizedBox(height: 40),

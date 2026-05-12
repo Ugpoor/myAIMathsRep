@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../components/app_title_bar.dart';
 
@@ -13,6 +12,7 @@ class AppTitleBarTest extends StatelessWidget {
         children: [
           const AppTitleBar(
             title: 'AppTitleBar 测试',
+            lang: 'cn',
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -35,7 +35,7 @@ class AppTitleBarTest extends StatelessWidget {
                     ),
                     child: const Column(
                       children: [
-                        AppTitleBar(title: '这是一个标题'),
+                        AppTitleBar(title: '这是一个标题', lang: 'cn'),
                         Padding(
                           padding: EdgeInsets.all(16),
                           child: Text('标题栏下方的内容区域'),
@@ -48,7 +48,7 @@ class AppTitleBarTest extends StatelessWidget {
                   _buildCodeBlock('''
 AppTitleBar(
   title: '我的AI语言学习助理',
-  showChatSuffix: false,
+  lang: 'cn',
 )
 '''),
                   const SizedBox(height: 40),

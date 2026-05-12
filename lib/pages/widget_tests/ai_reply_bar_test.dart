@@ -1,7 +1,6 @@
-
 import 'package:flutter/material.dart';
-import '../../components/ai_reply_bar.dart';
 import '../../components/app_title_bar.dart';
+import '../../components/ai_reply_bar.dart';
 
 class AIReplyBarTest extends StatefulWidget {
   const AIReplyBarTest({super.key});
@@ -12,14 +11,19 @@ class AIReplyBarTest extends StatefulWidget {
 
 class _AIReplyBarTestState extends State<AIReplyBarTest> {
   bool _isExpanded = false;
+  String _lang = 'cn';
 
   @override
   Widget build(BuildContext context) {
+    final lastAiMessage = _lang == 'cn'
+        ? '你好，我是你的语文学习助手，让我帮你进行语文学习规划。'
+        : 'Hello, I am your Chinese learning assistant, let me help you with Chinese learning.';
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFE4E9),
       body: Column(
         children: [
-          const AppTitleBar(title: 'AIReplyBar 测试'),
+          const AppTitleBar(title: 'AIReplyBar 测试', lang: 'cn'),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -43,10 +47,16 @@ class _AIReplyBarTestState extends State<AIReplyBarTest> {
                     child: Column(
                       children: [
                         AIReplyBar(
-                          isExpanded: _isExpanded,
-                          onToggle: () {
+                          lang: _lang,
+                          lastAiMessage: lastAiMessage,
+                          onPullDown: () {
                             setState(() {
                               _isExpanded = !_isExpanded;
+                            });
+                          },
+                          onAvatarTap: () {
+                            setState(() {
+                              _lang = _lang == 'cn' ? 'en' : 'cn';
                             });
                           },
                         ),
@@ -61,7 +71,7 @@ class _AIReplyBarTestState extends State<AIReplyBarTest> {
                             backgroundColor: const Color(0xFFFF69B4),
                             foregroundColor: Colors.white,
                           ),
-                          child: Text(_isExpanded ? '点击收起' : '点击展开'),
+                          child: const Text('切换语言'),
                         ),
                       ],
                     ),
@@ -70,11 +80,13 @@ class _AIReplyBarTestState extends State<AIReplyBarTest> {
                   _buildSection('📝 使用示例'),
                   _buildCodeBlock('''
 AIReplyBar(
-  isExpanded: _isExpanded,
-  onToggle: () {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
+  lang: 'cn',
+  lastAiMessage: '你好，我是你的语文学习助手',
+  onPullDown: () {
+    // 切换到聊天模式
+  },
+  onAvatarTap: () {
+    // 切换语言
   },
 )
 '''),

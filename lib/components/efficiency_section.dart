@@ -34,6 +34,16 @@ class EfficiencySection extends StatelessWidget {
                     '阅读速度: 280字/分钟',
                     style: TextStyle(color: Colors.white, fontSize: 14),
                   ),
+                  SizedBox(height: 8),
+                  Text(
+                    '正确率: 85%',
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    '学习时长: 45分钟/天',
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
                 ],
               ),
             ),
@@ -62,6 +72,16 @@ class EfficiencySection extends StatelessWidget {
                     '每天一篇阅读',
                     style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
+                  SizedBox(height: 8),
+                  Text(
+                    '每周一次写作',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    '每月测评一次',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -77,13 +97,18 @@ class EfficiencySection extends StatelessWidget {
     required List<Widget> children,
   }) {
     return Container(
-      height: 120,
+      height: 200,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: Color.fromRGBO(
+              (color.r * 255.0).round().clamp(0, 255),
+              (color.g * 255.0).round().clamp(0, 255),
+              (color.b * 255.0).round().clamp(0, 255),
+              0.3,
+            ),
             spreadRadius: 2,
             blurRadius: 5,
           ),

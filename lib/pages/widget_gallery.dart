@@ -24,8 +24,8 @@ class WidgetGallery extends StatelessWidget {
               decoration: const BoxDecoration(
                 color: Color(0xFFFF69B4),
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
                 ),
               ),
               child: const Column(
@@ -157,7 +157,7 @@ class WidgetGallery extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: const Color.fromRGBO(0, 0, 0, 0.1),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -234,7 +234,7 @@ class WidgetGallery extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: const Color.fromRGBO(0, 0, 0, 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -246,7 +246,7 @@ class WidgetGallery extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFFFF69B4).withOpacity(0.1),
+                color: const Color.fromRGBO(255, 105, 180, 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
