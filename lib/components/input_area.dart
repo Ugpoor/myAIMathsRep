@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class InputArea extends StatefulWidget {
   final String lang;
   final TextEditingController? controller;
   final VoidCallback? onSend;
   final Function(bool)? onVoiceStateChanged;
+  final ValueChanged<String>? onTextChanged;
 
   const InputArea({
     super.key,
@@ -12,6 +14,7 @@ class InputArea extends StatefulWidget {
     this.controller,
     this.onSend,
     this.onVoiceStateChanged,
+    this.onTextChanged,
   });
 
   @override
@@ -20,9 +23,42 @@ class InputArea extends StatefulWidget {
 
 class _InputAreaState extends State<InputArea> {
   bool _isRecording = false;
+  late TextEditingController _localController;
 
   String get hintText {
     return widget.lang == 'cn' ? '你好，我要练习' : 'Hello, I want to practice';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _localController = widget.controller ?? TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _localController.dispose();
+    }
+    super.dispose();
+  }
+
+  void _handleSubmitted(String value) {
+    if (value.trim().isNotEmpty) {
+      widget.onSend?.call();
+    }
+  }
+
+  void _handleKeyEvent(RawKeyEvent event) {
+    if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
+      if (event.isMetaPressed || event.isControlPressed) {
+        _localController.text += '\n';
+      } else {
+        if (_localController.text.trim().isNotEmpty) {
+          widget.onSend?.call();
+        }
+      }
+    }
   }
 
   @override
@@ -99,33 +135,45 @@ class _InputAreaState extends State<InputArea> {
   }
 
   Widget _buildTextField() {
-    return Container(
-      height: 36,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(width: 16),
-          Expanded(
-            child: TextField(
-              controller: widget.controller,
-              textAlign: TextAlign.left,
-              textAlignVertical: TextAlignVertical.center,
-              style: const TextStyle(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: hintText,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                isCollapsed: true,
-                hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+    return RawKeyboardListener(
+      focusNode: FocusNode(),
+      onKey: _handleKeyEvent,
+      child: Container(
+        height: 36,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextField(
+                controller: _localController,
+                textAlign: TextAlign.left,
+                textAlignVertical: TextAlignVertical.center,
+                style: const TextStyle(fontSize: 14),
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.send,
+                maxLines: 1,
+                minLines: 1,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  isCollapsed: false,
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                onChanged: widget.onTextChanged,
+                onSubmitted: _handleSubmitted,
+                onTapOutside: (_) {},
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-        ],
+            const SizedBox(width: 16),
+          ],
+        ),
       ),
     );
   }
@@ -135,7 +183,7 @@ class _InputAreaState extends State<InputArea> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: const Color.fromRGBO(0, 122, 255, 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

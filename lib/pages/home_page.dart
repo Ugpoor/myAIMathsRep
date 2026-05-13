@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../components/app_title_bar.dart';
 import '../components/ai_reply_bar.dart';
@@ -6,8 +5,10 @@ import '../components/submenu_tabs.dart';
 import '../components/menu_grid.dart';
 import '../components/efficiency_section.dart';
 import '../components/input_area.dart';
+import '../services/llm_service.dart';
+import '../components/chat_bubble_list.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final VoidCallback onExpandChat;
   final String selectedTab;
   final Function(String) onTabSelected;
@@ -16,6 +17,8 @@ class HomePage extends StatelessWidget {
   final VoidCallback? onHomeTap;
   final void Function(int)? onMenuItemTap;
   final String lastAiMessage;
+  final ValueChanged<String>? onAiMessageChanged;
+  final ValueChanged<ChatMessage>? onMessageAdded;
 
   const HomePage({
     super.key,
@@ -27,11 +30,63 @@ class HomePage extends StatelessWidget {
     this.onHomeTap,
     this.onMenuItemTap,
     required this.lastAiMessage,
+    this.onAiMessageChanged,
+    this.onMessageAdded,
   });
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _textController = TextEditingController();
+  final LlmService _llmService = LlmService();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _llmService.init();
+  }
+
+  Future<void> _handleSend() async {
+    final text = _textController.text.trim();
+    if (text.isEmpty || _isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userMessage = ChatMessage(
+        sender: '用户',
+        text: text,
+        isAI: false,
+      );
+      widget.onMessageAdded?.call(userMessage);
+
+      final response = await _llmService.generateResponse(text);
+      
+      final aiMessage = ChatMessage(
+        sender: 'AI',
+        text: response['response'] ?? (widget.lang == 'cn' ? '收到你的消息！' : 'Received your message!'),
+        reasoningText: response['reasoning'] ?? (widget.lang == 'cn' ? '这是AI推理内容。' : 'This is AI reasoning.'),
+        isAI: true,
+      );
+      widget.onMessageAdded?.call(aiMessage);
+
+      widget.onAiMessageChanged?.call(aiMessage.text);
+      _textController.clear();
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<String> homeTabs = lang == 'cn'
+    final List<String> homeTabs = widget.lang == 'cn'
         ? ['收件箱', '错误本', '知识点', '习题集', '作品集', '技能库']
         : ['Inbox', 'Errors', 'Knowledge', 'Exercises', 'Portfolio', 'Skills'];
 
@@ -41,13 +96,13 @@ class HomePage extends StatelessWidget {
         child: Column(
           children: [
             AppTitleBar(
-              title: lang == 'cn' ? '我的AI语言学习助理' : 'My AI Language Tutor',
+              title: widget.lang == 'cn' ? '我的AI语言学习助理' : 'My AI Language Tutor',
             ),
             AIReplyBar(
-              lang: lang,
-              lastAiMessage: lastAiMessage,
-              onPullDown: onExpandChat,
-              onAvatarTap: onAvatarTap,
+              lang: widget.lang,
+              lastAiMessage: widget.lastAiMessage,
+              onPullDown: widget.onExpandChat,
+              onAvatarTap: widget.onAvatarTap,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -56,8 +111,8 @@ class HomePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     MenuGrid(
-                      lang: lang,
-                      onItemTap: onMenuItemTap,
+                      lang: widget.lang,
+                      onItemTap: widget.onMenuItemTap,
                     ),
                     const SizedBox(height: 24),
                     const EfficiencySection(),
@@ -67,17 +122,25 @@ class HomePage extends StatelessWidget {
             ),
             SubmenuTabs(
               tabs: homeTabs,
-              selectedTab: selectedTab,
-              onTabSelected: onTabSelected,
-              onHomeTap: onHomeTap,
-              lang: lang,
+              selectedTab: widget.selectedTab,
+              onTabSelected: widget.onTabSelected,
+              onHomeTap: widget.onHomeTap,
+              lang: widget.lang,
             ),
             InputArea(
-              lang: lang,
+              lang: widget.lang,
+              controller: _textController,
+              onSend: _handleSend,
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 }

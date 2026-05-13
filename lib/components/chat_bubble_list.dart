@@ -46,18 +46,16 @@ class _ChatBubbleListState extends State<ChatBubbleList> {
   @override
   Widget build(BuildContext context) {
     final reversedMessages = widget.messages.reversed.toList();
-    return Expanded(
-      child: ListView.builder(
-        reverse: true,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: reversedMessages.length,
-        itemBuilder: (context, index) {
-          final originalIndex = widget.messages.length - 1 - index;
-          final message = reversedMessages[index];
-          final showReasoning = _showReasoning[originalIndex] ?? false;
-          return _buildChatBubble(message, originalIndex, showReasoning);
-        },
-      ),
+    return ListView.builder(
+      reverse: true,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: reversedMessages.length,
+      itemBuilder: (context, index) {
+        final originalIndex = widget.messages.length - 1 - index;
+        final message = reversedMessages[index];
+        final showReasoning = _showReasoning[originalIndex] ?? false;
+        return _buildChatBubble(message, originalIndex, showReasoning);
+      },
     );
   }
 

@@ -21,6 +21,7 @@ class EfficiencySection extends StatelessWidget {
         Row(
           children: [
             Expanded(
+              flex: 6,
               child: _buildEfficiencyWidget(
                 title: '效率记录',
                 color: const Color(0xFF651FFF),
@@ -49,6 +50,7 @@ class EfficiencySection extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
+              flex: 4,
               child: _buildEfficiencyWidget(
                 title: '日程安排',
                 color: const Color(0xFFC2185B),
