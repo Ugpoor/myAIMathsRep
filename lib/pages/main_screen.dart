@@ -32,10 +32,10 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _initLlmService() async {
     await _llmService.init();
 
-final welcomeMessage = ChatMessage(
+    final welcomeMessage = ChatMessage(
       sender: 'AI',
       text: '你好，我是你的数学课代表，让我帮你进行数学学习规划。',
-      reasoningText: '这是一数学学习助手，需要先介绍自己然后了解用户需求。',
+      reasoningText: '这是一个数学学习助手，需要先介绍自己然后了解用户需求。',
       isAI: true,
     );
 
@@ -43,7 +43,7 @@ final welcomeMessage = ChatMessage(
       _chatMessages.add(welcomeMessage);
       _lastAiMessage = welcomeMessage.text;
     });
-
+  }
 
   void _toggleChatMode() {
     setState(() {
@@ -61,13 +61,11 @@ final welcomeMessage = ChatMessage(
   void _updateLastAiMessage(String message) {
     setState(() {
       _lastAiMessage = message;
-;
+    });
   }
 
-  void _addMessage(ChatMessage messag) {
+  void _addMessage(ChatMessage message) {
     setState(() {
-                 
-                 
       _chatMessages.add(message);
       if (message.isAI) {
         _lastAiMessage = message.text;
@@ -113,37 +111,25 @@ final welcomeMessage = ChatMessage(
           text: '抱歉，网络连接失败，请稍后重试。',
           reasoningText: '网络请求失败。',
           isAI: true,
-  ));
+        ));
         _isLoading = false;
       });
-          
-    }  
-  }  
-               
-               
-  
-               
-               
-  @overrid  e
-  Widget   ,
-        build(BuildContext context) {
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     if (_currentPage != null) {
       if (_currentPage == 'inbox') {
         return InboxPage(
           lastAiMessage: _lastAiMessage,
           onHomeTap: _goBack,
         );
-          
-      }  
-    }  
-               
-               
-  
-               
-               
-    return   AnimatedSwitcher(
-      du  r,
-        ation: const Duration(milliseconds: 300),
+      }
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
       transitionBuilder: (Widget child, Animation<double> animation) {
@@ -171,7 +157,10 @@ final welcomeMessage = ChatMessage(
               selectedTab: _selectedTab,
               onTabSelected: _selectTab,
               onSendMessage: _sendMessage,
-              isLoading: _isLoad) HomePage(    key: const ValueKey('home'),
+              isLoading: _isLoading,
+            )
+          : HomePage(
+              key: const ValueKey('home'),
               onExpandChat: _toggleChatMode,
               selectedTab: _selectedTab,
               onTabSelected: _selectTab,
@@ -199,14 +188,3 @@ final welcomeMessage = ChatMessage(
     );
   }
 }
-                        
-                       
-                       
-                       
-                       
-                       ,
-                      
-                      
-                        ,
-                      ,
-                    

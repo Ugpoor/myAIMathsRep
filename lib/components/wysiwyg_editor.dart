@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class WysiwygEditor extends StatefulWidget {
   final String? initialContent;
@@ -21,7 +20,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
   String _lastValidContent = '';
   bool _hasError = false;
   late TabController _tabController;
-  late WebViewController _webViewController;
   final List<Tab> _tabs = [];
 
   @override
@@ -32,71 +30,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
     _tabs.add(const Tab(text: '预览'));
     _tabs.add(const Tab(text: '编辑'));
     _tabController = TabController(length: 2, vsync: this);
-    _initWebViewController();
-  }
-
-  void _initWebViewController() {
-    _webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadHtmlString(_buildHtmlContent(_content));
-  }
-
-  String _buildHtmlContent(String content) {
-    return '''
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      color: #333;
-      padding: 16px;
-      margin: 0;
-    }
-    h1 {
-      font-size: 24px;
-      font-weight: bold;
-      margin: 16px 0;
-      color: #1a1a1a;
-    }
-    h2 {
-      font-size: 20px;
-      font-weight: bold;
-      margin: 12px 0;
-      color: #2a2a2a;
-    }
-    h3 {
-      font-size: 18px;
-      font-weight: bold;
-      margin: 10px 0;
-      color: #3a3a3a;
-    }
-    p {
-      margin: 10px 0;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      margin: 8px 0;
-      border-radius: 4px;
-    }
-    video {
-      max-width: 100%;
-      height: auto;
-      margin: 8px 0;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-<body>
-  $content
-</body>
-</html>
-''';
   }
 
   void _onContentChanged(String text) {
@@ -105,7 +38,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
       _hasError = false;
       _lastValidContent = text;
     });
-    _webViewController.loadHtmlString(_buildHtmlContent(text));
     if (widget.onContentChanged != null) {
       widget.onContentChanged!(text);
     }
@@ -116,7 +48,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
       _content = _lastValidContent;
       _hasError = false;
     });
-    _webViewController.loadHtmlString(_buildHtmlContent(_content));
     if (widget.onContentChanged != null) {
       widget.onContentChanged!(_content);
     }
@@ -127,7 +58,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
       _content += '<h$level>标题</h$level>';
       _lastValidContent = _content;
     });
-    _webViewController.loadHtmlString(_buildHtmlContent(_content));
     if (widget.onContentChanged != null) {
       widget.onContentChanged!(_content);
     }
@@ -141,7 +71,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
         _content += '<img src="${pickedFile.path}">';
         _lastValidContent = _content;
       });
-      _webViewController.loadHtmlString(_buildHtmlContent(_content));
       if (widget.onContentChanged != null) {
         widget.onContentChanged!(_content);
       }
@@ -156,7 +85,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
         _content += '<video src="${pickedFile.path}" controls></video>';
         _lastValidContent = _content;
       });
-      _webViewController.loadHtmlString(_buildHtmlContent(_content));
       if (widget.onContentChanged != null) {
         widget.onContentChanged!(_content);
       }
@@ -275,7 +203,13 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
   }
 
   Widget _buildPreview() {
-    return WebViewWidget(controller: _webViewController);
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: SingleChildScrollView(
+        child: Text(_content),
+      ),
+    );
   }
 }
 
@@ -341,7 +275,66 @@ class _HtmlEditorViewState extends State<_HtmlEditorView> {
       controller: _controllers[tagKey],
       focusNode: _focusNodes[tagKey],
       onChanged: (text) => _updateTagContent(tagKey, text),
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         border: InputBorder.none,
-        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        isDense
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        isDense: true,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.htmlContent.isEmpty) {
+      return const Center(child: Text('点击上方按钮添加内容'));
+    }
+
+    final List<Widget> widgets = [];
+    final RegExp exp = RegExp(r'<(\w+)([^>]*)>(.*?)</\1>', caseSensitive: false, dotAll: true);
+    int index = 0;
+
+    exp.allMatches(widget.htmlContent).forEach((match) {
+      final tagName = match.group(1)?.toLowerCase() ?? '';
+      final content = match.group(3) ?? '';
+      final tagKey = '$tagName-$index';
+      index++;
+
+      if (tagName == 'h1') {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: _buildEditableField(tagKey, content),
+          ),
+        );
+      } else if (tagName == 'h2') {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: _buildEditableField(tagKey, content),
+          ),
+        );
+      } else if (tagName == 'h3') {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: _buildEditableField(tagKey, content),
+          ),
+        );
+      } else {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: _buildEditableField(tagKey, content),
+          ),
+        );
+      }
+    });
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widgets,
+      ),
+    );
+  }
+}

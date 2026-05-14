@@ -147,10 +147,10 @@ class _InboxPageState extends State<InboxPage> {
                   ),
                   ...sources.map((source) => DropdownMenuItem(
                         value: source,
-                        child: Te
-                    xt(source),
-                       ,g,
-                  ed: (value) {
+                        child: Text(source),
+                      )),
+                ],
+                onChanged: (value) {
                   setState(() {
                     _selectedSource = value;
                   });
@@ -169,9 +169,10 @@ class _InboxPageState extends State<InboxPage> {
                   ),
                   ...categories.map((cat) => DropdownMenuItem(
                         value: cat,
-                        child: Text(
-                    cat),,g,
-                  ed: (value) {
+                        child: Text(cat),
+                      )),
+                ],
+                onChanged: (value) {
                   setState(() {
                     _selectedCategory = value;
                   });
@@ -190,10 +191,10 @@ class _InboxPageState extends State<InboxPage> {
                   ),
                   ...statuses.map((status) => DropdownMenuItem(
                         value: status,
-                        child: Tex
-                    t(status),
-                       ,g,
-                  ed: (value) {
+                        child: Text(status),
+                      )),
+                ],
+                onChanged: (value) {
                   setState(() {
                     _selectedStatus = value;
                   });
@@ -228,37 +229,28 @@ class _InboxPageState extends State<InboxPage> {
         const SnackBar(content: Text('请先选择条目')),
       );
       return;
-          
-            ,
-          ,
-        
     }
 
     final itemsToProcess = _allItems.where((item) => _selectedItems.contains(item.id)).toList();
 
     setState(() {
-        
-        
-  _isProcessing = true;
+      _isProcessing = true;
       _currentAiMessage = '开始整理 ${itemsToProcess.length} 个条目...';
     });
 
-    await _inboxService.processItems(itemsToProces, onProgress: (current, total, reasoning) {
+    await _inboxService.processItems(itemsToProcess, onProgress: (current, total, reasoning) {
       if (mounted) {
         setState(() {
           _currentAiMessage = '[$current/$total] 正在处理：$reasoning';
         });
-      
-     
-        }
-    });  
-  
-      await _loadItems();
-  
-    setS  tate(() {
-        _selectedItems.clear();
-       ,
-     _isProcessing = false;
+      }
+    });
+
+    await _loadItems();
+
+    setState(() {
+      _selectedItems.clear();
+      _isProcessing = false;
       _currentAiMessage = '整理完成！';
     });
 
@@ -272,11 +264,7 @@ class _InboxPageState extends State<InboxPage> {
   Future<void> _archiveSelectedItems() async {
     if (_selectedItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const Sna
-          ckBar(content:
-             Text('请先选择条目')),,
-          ,
-        
+        const SnackBar(content: Text('请先选择条目')),
       );
       return;
     }
@@ -284,11 +272,7 @@ class _InboxPageState extends State<InboxPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: co
-          nst Text('确认归档
-            '),,
-          ,
-        
+        title: const Text('确认归档'),
         content: Text('确定要归档选中的 ${_selectedItems.length} 条记录吗？'),
         actions: [
           TextButton(
@@ -297,11 +281,9 @@ class _InboxPageState extends State<InboxPage> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: con
-          st Text('确定'),
-            ),
-          ],,
-        
+            child: const Text('确定'),
+          ),
+        ],
       ),
     );
 
@@ -317,8 +299,6 @@ class _InboxPageState extends State<InboxPage> {
           const SnackBar(content: Text('归档完成')),
         );
       }
-          
-          
     }
   }
 
@@ -326,11 +306,7 @@ class _InboxPageState extends State<InboxPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE3F2FD),
-      body: SafeAre
-            a(
-              ,
-            ,
-          
+      body: SafeArea(
         child: Column(
           children: [
             AppTitleBar(
@@ -345,8 +321,6 @@ class _InboxPageState extends State<InboxPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                 
-                 
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.grey),
                 ),
@@ -366,23 +340,19 @@ class _InboxPageState extends State<InboxPage> {
                           ),
               ),
             ),
-                          ,
-                        
-            SubmenuTab
-              tabs: ', '整理', '归档'],
-              selectedTa筛选',
-              onTabSelec (tab) async {
-                if (_isPssing) {
-                  showDial
-                    contexontext,
-                    buil (context) => AlertDialog(
-                      e: const Text('提示'),
+            SubmenuTabs(
+              tabs: const ['筛选', '整理', '归档'],
+              selectedTab: '筛选',
+              onTabSelected: (tab) async {
+                if (_isProcessing) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('提示'),
                       content: const Text('当前正在整理中，请稍候完成后再试'),
                       actions: [
                         TextButton(
-                          onPressed: ()
-                  => Navigator.of(cont
-                 ext).pop(),
+                          onPressed: () => Navigator.of(context).pop(),
                           child: const Text('确定'),
                         ),
                       ],
@@ -391,10 +361,6 @@ class _InboxPageState extends State<InboxPage> {
                   return;
                 }
 
-                        
-                           
-                           ,
-                      
                 if (tab == '筛选') {
                   setState(() {
                     _showFilterDialog = true;
@@ -405,7 +371,7 @@ class _InboxPageState extends State<InboxPage> {
                   );
                 } else if (tab == '整理') {
                   await _processSelectedItems();
-} else if (tab == '归档') {
+                } else if (tab == '归档') {
                   await _archiveSelectedItems();
                 }
               },
@@ -423,7 +389,8 @@ class _InboxPageState extends State<InboxPage> {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
-        onTap: () {gator.push(context,
+        onTap: () {
+          Navigator.push(context,
             MaterialPageRoute(
               builder: (context) => InboxDetailPage(
                 item: item,

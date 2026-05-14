@@ -58,19 +58,17 @@ class _HomePageState extends State<HomePage> {
         sender: '用户',
         text: text,
         isAI: false,
-      );dget.onMessaginal respons
+      );
+      widget.onMessageAdded?.call(userMessage);
+
+      final response = await _llmService.generateResponse(text);
       final aiMessage = ChatMessage(
         sender: 'AI',
         text: response['response'] ?? '收到你的消息！',
-  reasoningText: response['reasoning'] ?? '这是AI推理内容。',
+        reasoningText: response['reasoning'] ?? '这是AI推理内容。',
         isAI: true,
       );
-      widget.
-           onMessageAdded?.call(aiM
-           essage);
-
-           
-           
+      widget.onMessageAdded?.call(aiMessage);
       widget.onAiMessageChanged?.call(aiMessage.text);
       _textController.clear();
     } finally {
@@ -97,8 +95,6 @@ class _HomePageState extends State<HomePage> {
               onPullDown: widget.onExpandChat,
             ),
             Expanded(
-                 
-                 
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: Column(

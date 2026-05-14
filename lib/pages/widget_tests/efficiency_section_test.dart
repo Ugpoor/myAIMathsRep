@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../components/app_title_bar.dart';
 import '../../components/efficiency_section.dart';
@@ -9,7 +8,7 @@ class EfficiencySectionTest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: Column(
         children: [
           const AppTitleBar(title: 'EfficiencySection 测试'),
@@ -49,7 +48,7 @@ const EfficiencySection()
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pop(context),
-        backgroundColor: const Color(0xFFFF69B4),
+        backgroundColor: const Color(0xFF6BB3FF),
         child: const Icon(Icons.arrow_back, color: Colors.white),
       ),
     );

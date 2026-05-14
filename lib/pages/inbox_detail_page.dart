@@ -29,7 +29,13 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
 
   final List<String> _categories = [
     '知识点',
-    '错题本','习题', '作品集', '未知归类;final List<String> _statuses = ['未处理', '已处理'];
+    '错题本',
+    '习题',
+    '作品集',
+    '未知归类',
+  ];
+
+  final List<String> _statuses = ['未处理', '已处理'];
 
   late String _selectedCategory;
   late String _selectedStatus;
@@ -81,10 +87,6 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
         content: const Text('确定要删除这条记录吗？'),
         actions: [
           TextButton(
-          
-             
-             ,
-        
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('取消'),
           ),
@@ -113,8 +115,6 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
             const SnackBar(content: Text('删除失败')),
           );
         }
-              ,
-            
       } finally {
         setState(() {
           _isLoading = false;
@@ -134,14 +134,10 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
               title: '我的数学课代表-收件箱条目编辑',
             ),
             AIReplyBar(
-                 
-                 
               lastAiMessage: '你好，我来帮你编辑这条记录。',
               onPullDown: () {},
             ),
             Expanded(
-                 
-                 
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
@@ -158,9 +154,6 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                              
-                             ,
-                            
                                 Text(
                                   widget.item.title,
                                   style: const TextStyle(
@@ -181,28 +174,15 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
                                         ),
                                         const SizedBox(width: 4),
                                         Container(
-                                            
-                                           ,
-                                          
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFE3F2FD),
-                                            borderRadius: BorderRadius.circula
-                                            r(3),
-                                           ,
-                                          
+                                            borderRadius: BorderRadius.circular(3),
                                           ),
                                           child: Text(widget.item.source, style: const TextStyle(fontSize: 12)),
                                         ),
-                                              ,
-                                            
                                       ],
                                     ),
-                                            
-                                           
-                                              ,
-                                            ,
-                                          
                                     const SizedBox(width: 16),
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -211,45 +191,17 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
                                           '归类',
                                           style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
                                         ),
-                                        const SizedBox(width:
-                                              4),
-                                             
+                                        const SizedBox(width: 4),
                                         DropdownButton<String>(
-                                            
-                                           ,
-                                          
                                           value: _selectedCategory,
                                           items: _categories
                                               .map((cat) => DropdownMenuItem(
                                                     value: cat,
-                                                    child: Container(
-                                                   
-                                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(0xFF87CEEB),
-                                                      border
-                                                       Radius: BorderRadius.circula
-                                                          r(3),
-                                                         ,
-                                                        
-                                                    ),
-                                                      ild: Text(cat, styl
-                                                        e: const T,
-                                                      extStyle(fontSize: 12)),
-                                                    ),
-                                                         
-                                                            ,
-                                                          
+                                                    child: Text(cat),
                                                   ))
-                                              .toLis),
-                                                      
-                                                     
-                                                        ,
-                                                      ,
-                                                    
-                                          onChange (value) {
-                                            setSt,
-                                              e(() {
+                                              .toList(),
+                                          onChanged: (value) {
+                                            setState(() {
                                               _selectedCategory = value!;
                                             });
                                           },
@@ -277,17 +229,13 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
               ),
             ),
             SubmenuTabs(
-              tabs: ['取消', '保存', '删除'],
+              tabs: const ['取消', '保存', '删除'],
               selectedTab: '保存',
               onTabSelected: (tab) async {
                 if (tab == '取消') {
                   Navigator.of(context).pop();
-                } else if (tab == '保存') 
-                       {
-                       
+                } else if (tab == '保存') {
                   await _saveChanges();
-                       
-                       
                 } else if (tab == '删除') {
                   await _deleteItem();
                 }
@@ -301,7 +249,5 @@ class _InboxDetailPageState extends State<InboxDetailPage> {
         ),
       ),
     );
-  }se() {
-    super.dispose();
   }
 }

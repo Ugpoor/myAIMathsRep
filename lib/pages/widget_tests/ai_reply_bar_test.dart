@@ -131,6 +131,12 @@ AIReplyBar(
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCodeBlock(String code) {
     return Container(
       width: double.infinity,

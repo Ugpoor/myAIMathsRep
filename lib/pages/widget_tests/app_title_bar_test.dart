@@ -10,7 +10,8 @@ class AppTitleBarTest extends StatelessWidget {
       backgroundColor: const Color(0xFFE3F2FD),
       body: Column(
         children: [
-          const AppTitleBar(title: 'AppTitleBar 测试',,Expanded(
+          const AppTitleBar(title: 'AppTitleBar 测试'),
+          Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -88,7 +89,13 @@ AppTitleBar(
         children: [
           Text(
             label,
-            sty  colo   fontSize: 14,x  value,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
             style: const TextStyle(
               color: Colors.black87,
               fontSize: 14,

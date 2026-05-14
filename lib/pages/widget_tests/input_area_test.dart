@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import '../../components/app_title_bar.dart';
 import '../../components/input_area.dart';
 
@@ -86,7 +87,13 @@ const InputArea()
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            labstyle:   color: Colors.gfontSize: 14,,Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
+          ),
+          Text(
             value,
             style: const TextStyle(
               color: Colors.black87,

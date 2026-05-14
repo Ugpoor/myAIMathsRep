@@ -8,13 +8,10 @@ class PullUpControlTest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: Column(
         children: [
-          const AppTitleBar(
-            title: 'PullUpControl 测试',
-            lang: 'cn',
-          ),
+          const AppTitleBar(title: 'PullUpControl 测试'),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -68,7 +65,7 @@ PullUpControl(
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pop(context),
-        backgroundColor: const Color(0xFFFF69B4),
+        backgroundColor: const Color(0xFF6BB3FF),
         child: const Icon(Icons.arrow_back, color: Colors.white),
       ),
     );
