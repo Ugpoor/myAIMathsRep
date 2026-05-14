@@ -5,13 +5,11 @@ import 'package:webview_flutter/webview_flutter.dart';
 class WysiwygEditor extends StatefulWidget {
   final String? initialContent;
   final Function(String)? onContentChanged;
-  final String lang;
 
   const WysiwygEditor({
     super.key,
     this.initialContent,
     this.onContentChanged,
-    this.lang = 'cn',
   });
 
   @override
@@ -211,11 +209,11 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
         children: [
           const Icon(Icons.error, color: Colors.red, size: 16),
           const SizedBox(width: 8),
-          Text(widget.lang == 'cn' ? '渲染错误，请恢复到上一个正确版本' : 'Render error, please restore to last valid version'),
+          const Text('渲染错误，请恢复到上一个正确版本'),
           const Spacer(),
           TextButton(
             onPressed: _restoreLastValid,
-            child: Text(widget.lang == 'cn' ? '恢复' : 'Restore'),
+            child: const Text('恢复'),
           ),
         ],
       ),
@@ -269,7 +267,6 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
               key: ValueKey(_content),
               htmlContent: _content,
               onContentChanged: _onContentChanged,
-              lang: widget.lang,
             ),
           ),
         ),
@@ -285,13 +282,11 @@ class WysiwygEditorState extends State<WysiwygEditor> with SingleTickerProviderS
 class _HtmlEditorView extends StatefulWidget {
   final String htmlContent;
   final Function(String) onContentChanged;
-  final String lang;
 
   const _HtmlEditorView({
     super.key,
     required this.htmlContent,
     required this.onContentChanged,
-    required this.lang,
   });
 
   @override

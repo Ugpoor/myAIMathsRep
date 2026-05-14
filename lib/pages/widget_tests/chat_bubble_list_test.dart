@@ -10,28 +10,16 @@ class ChatBubbleListTest extends StatelessWidget {
     final List<ChatMessage> messages = [
       ChatMessage(
         sender: 'AI',
-        text: '你好！我是你的AI语言学习助手，有什么可以帮助你的吗？',
+        text: '你好！我是你的数学课代表，有什么可以帮助你的吗？',
         isAI: true,
       ),
-      ChatMessage(
-        sender: '用户',
-        text: '你好，我想学习中文。',
-        isAI: false,
-      ),
-      ChatMessage(
-        sender: 'AI',
-        text: '太好了！我们可以从基础的拼音和词汇开始学习。',
-        isAI: true,
-      ),
-      ChatMessage(
-        sender: '用户',
-        text: '好的，那我们现在就开始吧！',
-        isAI: false,
-      ),
+      ChatMessage(sender: '用户', text: '你好，我想学习数学。', isAI: false),
+      ChatMessage(sender: 'AI', text: '太好了！我们可以从基础的数学概念开始学习。', isAI: true),
+      ChatMessage(sender: '用户', text: '好的，那我们现在就开始吧！', isAI: false),
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: Column(
         children: [
           const AppTitleBar(title: 'ChatBubbleList 测试'),
@@ -79,7 +67,7 @@ ChatBubbleList(
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pop(context),
-        backgroundColor: const Color(0xFFFF69B4),
+        backgroundColor: const Color(0xFF6BB3FF),
         child: const Icon(Icons.arrow_back, color: Colors.white),
       ),
     );
@@ -110,13 +98,7 @@ ChatBubbleList(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
+          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
           Text(
             value,
             style: const TextStyle(

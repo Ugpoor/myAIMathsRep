@@ -7,14 +7,10 @@ class AppTitleBarTest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: Column(
         children: [
-          const AppTitleBar(
-            title: 'AppTitleBar 测试',
-            lang: 'cn',
-          ),
-          Expanded(
+          const AppTitleBar(title: 'AppTitleBar 测试',,Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -24,7 +20,7 @@ class AppTitleBarTest extends StatelessWidget {
                   _buildInfoItem('名称', 'AppTitleBar'),
                   _buildInfoItem('功能', '通用标题栏'),
                   _buildInfoItem('高度', 'screenHeight * 0.08'),
-                  _buildInfoItem('背景色', 'Color(0xFFFF69B4)'),
+                  _buildInfoItem('背景色', 'Color(0xFF6BB3FF)'),
                   const SizedBox(height: 24),
                   _buildSection('🎨 实际效果'),
                   const SizedBox(height: 16),
@@ -35,7 +31,7 @@ class AppTitleBarTest extends StatelessWidget {
                     ),
                     child: const Column(
                       children: [
-                        AppTitleBar(title: '这是一个标题', lang: 'cn'),
+                        AppTitleBar(title: '这是一个标题'),
                         Padding(
                           padding: EdgeInsets.all(16),
                           child: Text('标题栏下方的内容区域'),
@@ -47,8 +43,7 @@ class AppTitleBarTest extends StatelessWidget {
                   _buildSection('📝 使用示例'),
                   _buildCodeBlock('''
 AppTitleBar(
-  title: '我的AI语言学习助理',
-  lang: 'cn',
+  title: '我的数学课代表',
 )
 '''),
                   const SizedBox(height: 40),
@@ -60,7 +55,7 @@ AppTitleBar(
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pop(context),
-        backgroundColor: const Color(0xFFFF69B4),
+        backgroundColor: const Color(0xFF6BB3FF),
         child: const Icon(Icons.arrow_back, color: Colors.white),
       ),
     );
@@ -93,13 +88,7 @@ AppTitleBar(
         children: [
           Text(
             label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            value,
+            sty  colo   fontSize: 14,x  value,
             style: const TextStyle(
               color: Colors.black87,
               fontSize: 14,

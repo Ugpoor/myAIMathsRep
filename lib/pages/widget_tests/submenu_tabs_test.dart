@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../components/app_title_bar.dart';
 import '../../components/submenu_tabs.dart';
@@ -17,7 +16,7 @@ class _SubmenuTabsTestState extends State<SubmenuTabsTest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: Column(
         children: [
           const AppTitleBar(title: 'SubmenuTabs 测试'),
@@ -54,12 +53,12 @@ class _SubmenuTabsTestState extends State<SubmenuTabsTest> {
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
-                    '当前选中: $_selectedTab',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      '当前选中: $_selectedTab',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
                   ),
                   const SizedBox(height: 24),
                   _buildSection('📝 使用示例'),
@@ -83,7 +82,7 @@ SubmenuTabs(
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pop(context),
-        backgroundColor: const Color(0xFFFF69B4),
+        backgroundColor: const Color(0xFF6BB3FF),
         child: const Icon(Icons.arrow_back, color: Colors.white),
       ),
     );

@@ -1,5 +1,3 @@
-
-import 'package:flutter/material.dart';
 import '../../components/app_title_bar.dart';
 import '../../components/input_area.dart';
 
@@ -9,7 +7,7 @@ class InputAreaTest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: Column(
         children: [
           const AppTitleBar(title: 'InputArea 测试'),
@@ -56,7 +54,7 @@ const InputArea()
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pop(context),
-        backgroundColor: const Color(0xFFFF69B4),
+        backgroundColor: const Color(0xFF6BB3FF),
         child: const Icon(Icons.arrow_back, color: Colors.white),
       ),
     );
@@ -88,13 +86,7 @@ const InputArea()
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
-          Text(
+            labstyle:   color: Colors.gfontSize: 14,,Text(
             value,
             style: const TextStyle(
               color: Colors.black87,
