@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AIReplyBar extends StatelessWidget {
-  final String lang;
   final String lastAiMessage;
   final VoidCallback onPullDown;
   final VoidCallback? onAvatarTap;
@@ -10,7 +9,6 @@ class AIReplyBar extends StatelessWidget {
 
   const AIReplyBar({
     super.key,
-    this.lang = 'cn',
     required this.lastAiMessage,
     required this.onPullDown,
     this.onAvatarTap,
@@ -19,9 +17,7 @@ class AIReplyBar extends StatelessWidget {
   });
 
   String get avatarAsset {
-    return lang == 'cn'
-        ? 'assets/images/chinese_msg.png'
-        : 'assets/images/english_msg.png';
+    return 'assets/images/ai_maths.png';
   }
 
   String get truncatedMessage {
@@ -37,7 +33,7 @@ class AIReplyBar extends StatelessWidget {
       width: double.infinity,
       height: 110,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFE4E9),
+        color: const Color(0xFFE3F2FD),
         boxShadow: [
           BoxShadow(
             color: const Color.fromRGBO(128, 128, 128, 0.3),
@@ -94,10 +90,10 @@ class AIReplyBar extends StatelessWidget {
                         height: 48,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: const Color(0xFFFFE4E9),
+                            color: const Color(0xFFE3F2FD),
                             child: const Icon(
                               Icons.chat_bubble,
-                              color: Color(0xFFFF69B4),
+                              color: Color(0xFF6BB3FF),
                               size: 24,
                             ),
                           );
@@ -119,7 +115,7 @@ class AIReplyBar extends StatelessWidget {
               child: const Center(
                 child: Icon(
                   Icons.expand_more,
-                  color: Color(0xFFFF69B4),
+                  color: Color(0xFF6BB3FF),
                   size: 24,
                 ),
               ),

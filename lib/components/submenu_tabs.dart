@@ -5,7 +5,6 @@ class SubmenuTabs extends StatelessWidget {
   final String selectedTab;
   final Function(String) onTabSelected;
   final VoidCallback? onHomeTap;
-  final String lang;
 
   const SubmenuTabs({
     super.key,
@@ -13,14 +12,13 @@ class SubmenuTabs extends StatelessWidget {
     required this.selectedTab,
     required this.onTabSelected,
     this.onHomeTap,
-    this.lang = 'cn',
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFFFFE4E9),
+        color: Color(0xFFE3F2FD),
         boxShadow: [
           BoxShadow(
             color: Color.fromRGBO(128, 128, 128, 0.3),
@@ -48,7 +46,7 @@ class SubmenuTabs extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(Icons.home, color: Color(0xFFFF69B4), size: 20),
+              child: const Icon(Icons.home, color: Color(0xFF6BB3FF), size: 20),
             ),
           ),
           const SizedBox(width: 8),
@@ -69,16 +67,16 @@ class SubmenuTabs extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? const Color(0xFFFF69B4)
+                              ? const Color(0xFF6BB3FF)
                               : Colors.white,
                           borderRadius: BorderRadius.circular(5),
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
                                     color: const Color.fromRGBO(
+                                      107,
+                                      179,
                                       255,
-                                      105,
-                                      180,
                                       0.3,
                                     ),
                                     spreadRadius: 2,

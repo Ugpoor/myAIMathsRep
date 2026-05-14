@@ -11,11 +11,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '我的AI语言学习助手',
-      theme: ThemeData(
-        primarySwatch: Colors.pink,
-        useMaterial3: true,
-      ),
+      title: '我的数学课代表',
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: const WidgetGallery(),
       debugShowCheckedModeBanner: false,
     );

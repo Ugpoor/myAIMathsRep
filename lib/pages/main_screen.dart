@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'chat_page.dart';
+import 'inbox_page.dart';
 import '../components/chat_bubble_list.dart';
 import '../services/llm_service.dart';
 
@@ -14,9 +15,9 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   bool _isChatMode = false;
   String _selectedTab = '收件箱';
-  String _lang = 'cn';
   bool _isLoading = false;
-  String _lastAiMessage = '你好，我是你的语文学习助手！';
+  String _lastAiMessage = '你好，我是你的数学课代表！';
+  String? _currentPage;
 
   final List<ChatMessage> _chatMessages = [];
 
@@ -30,40 +31,24 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _initLlmService() async {
     await _llmService.init();
-    
-    final welcomeMessage = ChatMessage(
+
+final welcomeMessage = ChatMessage(
       sender: 'AI',
-      text: _lang == 'cn' 
-          ? '你好，我是你的语文学习助手，让我帮你进行语文学习规划。' 
-          : 'Hello, I am your language learning assistant. Let me help you with your learning plan.',
-      reasoningText: _lang == 'cn'
-          ? '这是一个语言学习助手，需要先介绍自己然后了解用户需求。'
-          : 'This is a language learning assistant. I need to introduce myself and understand user needs.',
+      text: '你好，我是你的数学课代表，让我帮你进行数学学习规划。',
+      reasoningText: '这是一数学学习助手，需要先介绍自己然后了解用户需求。',
       isAI: true,
     );
-    
+
     setState(() {
       _chatMessages.add(welcomeMessage);
       _lastAiMessage = welcomeMessage.text;
     });
-  }
+
 
   void _toggleChatMode() {
     setState(() {
       _isChatMode = !_isChatMode;
-    });
-  }
-
-  void _toggleLang() {
-    setState(() {
-      _lang = _lang == 'cn' ? 'en' : 'cn';
-      _selectedTab = _lang == 'cn' ? '收件箱' : 'Inbox';
-      
-      if (_chatMessages.isNotEmpty) {
-        _lastAiMessage = _chatMessages.last.isAI 
-            ? _chatMessages.last.text 
-            : (_lang == 'cn' ? '你好，我是你的语文学习助手！' : 'Hello, I\'m your English learning assistant!');
-      }
+      _currentPage = null;
     });
   }
 
@@ -76,15 +61,29 @@ class _MainScreenState extends State<MainScreen> {
   void _updateLastAiMessage(String message) {
     setState(() {
       _lastAiMessage = message;
-    });
+;
   }
 
-  void _addMessage(ChatMessage message) {
+  void _addMessage(ChatMessage messag) {
     setState(() {
+                 
+                 
       _chatMessages.add(message);
       if (message.isAI) {
         _lastAiMessage = message.text;
       }
+    });
+  }
+
+  void _navigateToPage(String pageName) {
+    setState(() {
+      _currentPage = pageName;
+    });
+  }
+
+  void _goBack() {
+    setState(() {
+      _currentPage = null;
     });
   }
 
@@ -96,12 +95,12 @@ class _MainScreenState extends State<MainScreen> {
 
     try {
       final response = await _llmService.generateResponse(message.text);
-      
+
       setState(() {
         _chatMessages.add(ChatMessage(
           sender: 'AI',
-          text: response['response'] ?? (_lang == 'cn' ? '收到你的消息！' : 'Received your message!'),
-          reasoningText: response['reasoning'] ?? (_lang == 'cn' ? '这是AI推理内容。' : 'This is AI reasoning.'),
+          text: response['response'] ?? '收到你的消息！',
+          reasoningText: response['reasoning'] ?? '这是AI推理内容。',
           isAI: true,
         ));
         _lastAiMessage = _chatMessages.last.text;
@@ -111,19 +110,40 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {
         _chatMessages.add(ChatMessage(
           sender: 'AI',
-          text: _lang == 'cn' ? '抱歉，网络连接失败，请稍后重试。' : 'Sorry, network error. Please try again later.',
-          reasoningText: _lang == 'cn' ? '网络请求失败。' : 'Network request failed.',
+          text: '抱歉，网络连接失败，请稍后重试。',
+          reasoningText: '网络请求失败。',
           isAI: true,
-        ));
+  ));
         _isLoading = false;
       });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+          
+    }  
+  }  
+               
+               
+  
+               
+               
+  @overrid  e
+  Widget   ,
+        build(BuildContext context) {
+    if (_currentPage != null) {
+      if (_currentPage == 'inbox') {
+        return InboxPage(
+          lastAiMessage: _lastAiMessage,
+          onHomeTap: _goBack,
+        );
+          
+      }  
+    }  
+               
+               
+  
+               
+               
+    return   AnimatedSwitcher(
+      du  r,
+        ation: const Duration(milliseconds: 300),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
       transitionBuilder: (Widget child, Animation<double> animation) {
@@ -150,27 +170,27 @@ class _MainScreenState extends State<MainScreen> {
               messages: _chatMessages,
               selectedTab: _selectedTab,
               onTabSelected: _selectTab,
-              lang: _lang,
               onSendMessage: _sendMessage,
-              isLoading: _isLoading,
-            )
-          : HomePage(
-              key: const ValueKey('home'),
+              isLoading: _isLoad) HomePage(    key: const ValueKey('home'),
               onExpandChat: _toggleChatMode,
               selectedTab: _selectedTab,
               onTabSelected: _selectTab,
-              lang: _lang,
-              onAvatarTap: _toggleLang,
               onHomeTap: () {
                 setState(() {
                   _isChatMode = false;
-                  _selectedTab = _lang == 'cn' ? '收件箱' : 'Inbox';
+                  _selectedTab = '收件箱';
                 });
               },
               onMenuItemTap: (index) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(_lang == 'cn' ? '点击了菜单 $index' : 'Clicked menu $index')),
-                );
+                const menuLabels = ['收件箱', '错误本', '知识点', '习题集', '作品集', '技能库'];
+
+                if (index == 0) {
+                  _navigateToPage('inbox');
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('点击了 ${menuLabels[index]}')),
+                  );
+                }
               },
               lastAiMessage: _lastAiMessage,
               onAiMessageChanged: _updateLastAiMessage,
@@ -179,3 +199,14 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+                        
+                       
+                       
+                       
+                       
+                       ,
+                      
+                      
+                        ,
+                      ,
+                    

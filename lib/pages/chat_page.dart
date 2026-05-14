@@ -11,7 +11,6 @@ class ChatPage extends StatefulWidget {
   final List<ChatMessage> messages;
   final String selectedTab;
   final Function(String) onTabSelected;
-  final String lang;
   final Future<void> Function(ChatMessage) onSendMessage;
   final bool isLoading;
 
@@ -22,7 +21,6 @@ class ChatPage extends StatefulWidget {
     required this.messages,
     required this.selectedTab,
     required this.onTabSelected,
-    required this.lang,
     required this.onSendMessage,
     this.isLoading = false,
   });
@@ -49,21 +47,20 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> chatTabs = widget.lang == 'cn' ? ['筛选'] : ['Filter'];
+    const chatTabs = ['筛选'];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: SafeArea(
         child: Column(
           children: [
             AppTitleBar(
-              title: widget.lang == 'cn' ? '我的AI语言学习助理-聊天' : 'My AI Language Assistant - Chat',
-              lang: widget.lang,
+              title: '我的数学课代表-聊天',
             ),
             Expanded(
               child: Stack(
                 children: [
-                  ChatBubbleList(messages: widget.messages, lang: widget.lang),
+                  ChatBubbleList(messages: widget.messages),
                   if (widget.isLoading)
                     const Positioned(
                       bottom: 16,
@@ -76,14 +73,14 @@ class _ChatPageState extends State<ChatPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               CircularProgressIndicator(
-                                color: Color(0xFFFF69B4),
+                                color: Color(0xFF6BB3FF),
                                 strokeWidth: 2,
                               ),
                               SizedBox(width: 12),
                               Text(
                                 'AI正在思考...',
                                 style: TextStyle(
-                                  color: Color(0xFFFF69B4),
+                                  color: Color(0xFF6BB3FF),
                                   fontSize: 14,
                                 ),
                               ),
@@ -101,10 +98,8 @@ class _ChatPageState extends State<ChatPage> {
               selectedTab: widget.selectedTab == chatTabs[0] ? widget.selectedTab : chatTabs[0],
               onTabSelected: widget.onTabSelected,
               onHomeTap: widget.onHomeTap,
-              lang: widget.lang,
             ),
             InputArea(
-              lang: widget.lang,
               controller: _textController,
               onSend: _handleSend,
             ),

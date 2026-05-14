@@ -12,8 +12,6 @@ class HomePage extends StatefulWidget {
   final VoidCallback onExpandChat;
   final String selectedTab;
   final Function(String) onTabSelected;
-  final String lang;
-  final VoidCallback? onAvatarTap;
   final VoidCallback? onHomeTap;
   final void Function(int)? onMenuItemTap;
   final String lastAiMessage;
@@ -25,8 +23,6 @@ class HomePage extends StatefulWidget {
     required this.onExpandChat,
     required this.selectedTab,
     required this.onTabSelected,
-    this.lang = 'cn',
-    this.onAvatarTap,
     this.onHomeTap,
     this.onMenuItemTap,
     required this.lastAiMessage,
@@ -62,19 +58,19 @@ class _HomePageState extends State<HomePage> {
         sender: '用户',
         text: text,
         isAI: false,
-      );
-      widget.onMessageAdded?.call(userMessage);
-
-      final response = await _llmService.generateResponse(text);
-      
+      );dget.onMessaginal respons
       final aiMessage = ChatMessage(
         sender: 'AI',
-        text: response['response'] ?? (widget.lang == 'cn' ? '收到你的消息！' : 'Received your message!'),
-        reasoningText: response['reasoning'] ?? (widget.lang == 'cn' ? '这是AI推理内容。' : 'This is AI reasoning.'),
+        text: response['response'] ?? '收到你的消息！',
+  reasoningText: response['reasoning'] ?? '这是AI推理内容。',
         isAI: true,
       );
-      widget.onMessageAdded?.call(aiMessage);
+      widget.
+           onMessageAdded?.call(aiM
+           essage);
 
+           
+           
       widget.onAiMessageChanged?.call(aiMessage.text);
       _textController.clear();
     } finally {
@@ -86,9 +82,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> homeTabs = widget.lang == 'cn'
-        ? ['收件箱', '错误本', '知识点', '习题集', '作品集', '技能库']
-        : ['Inbox', 'Errors', 'Knowledge', 'Exercises', 'Portfolio', 'Skills'];
+    const homeTabs = ['收件箱', '错误本', '知识点', '习题集', '作品集', '技能库'];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -96,22 +90,21 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             AppTitleBar(
-              title: widget.lang == 'cn' ? '我的AI语言学习助理' : 'My AI Language Tutor',
+              title: '我的数学课代表',
             ),
             AIReplyBar(
-              lang: widget.lang,
               lastAiMessage: widget.lastAiMessage,
               onPullDown: widget.onExpandChat,
-              onAvatarTap: widget.onAvatarTap,
             ),
             Expanded(
+                 
+                 
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     MenuGrid(
-                      lang: widget.lang,
                       onItemTap: widget.onMenuItemTap,
                     ),
                     const SizedBox(height: 24),
@@ -125,10 +118,8 @@ class _HomePageState extends State<HomePage> {
               selectedTab: widget.selectedTab,
               onTabSelected: widget.onTabSelected,
               onHomeTap: widget.onHomeTap,
-              lang: widget.lang,
             ),
             InputArea(
-              lang: widget.lang,
               controller: _textController,
               onSend: _handleSend,
             ),

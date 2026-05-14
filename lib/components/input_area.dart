@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class InputArea extends StatefulWidget {
-  final String lang;
   final TextEditingController? controller;
   final VoidCallback? onSend;
   final Function(bool)? onVoiceStateChanged;
@@ -10,7 +9,6 @@ class InputArea extends StatefulWidget {
 
   const InputArea({
     super.key,
-    this.lang = 'cn',
     this.controller,
     this.onSend,
     this.onVoiceStateChanged,
@@ -26,7 +24,7 @@ class _InputAreaState extends State<InputArea> {
   late TextEditingController _localController;
 
   String get hintText {
-    return widget.lang == 'cn' ? '你好，我要练习' : 'Hello, I want to practice';
+    return '你好，我要练习数学';
   }
 
   @override
@@ -66,19 +64,30 @@ class _InputAreaState extends State<InputArea> {
     return Container(
       width: double.infinity,
       height: 60,
-      decoration: const BoxDecoration(color: Color(0xFFFFE4E9)),
+      decoration: const BoxDecoration(color: Color(0xFFE3F2FD)),
       child: Row(
         children: [
           const SizedBox(width: 12),
           SizedBox(
             width: 40,
             height: 40,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: const Color(0xFFFF69B4),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/images/user_logo.png',
+                fit: BoxFit.cover,
+                width: 40,
+                height: 40,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFF6BB3FF),
+                    ),
+                    child: const Icon(Icons.person, color: Colors.white),
+                  );
+                },
               ),
-              child: const Icon(Icons.person, color: Colors.white),
             ),
           ),
           const SizedBox(width: 12),
@@ -110,11 +119,11 @@ class _InputAreaState extends State<InputArea> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF69B4),
+                  color: const Color(0xFF6BB3FF),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color.fromRGBO(255, 105, 180, 0.3),
+                      color: const Color.fromRGBO(107, 179, 255, 0.3),
                       spreadRadius: 2,
                       blurRadius: 5,
                     ),
@@ -200,9 +209,9 @@ class _InputAreaState extends State<InputArea> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            widget.lang == 'cn' ? '正在录音...' : 'Recording...',
-            style: const TextStyle(color: Colors.blue),
+          const Text(
+            '正在录音...',
+            style: TextStyle(color: Colors.blue),
           ),
         ],
       ),

@@ -15,14 +15,14 @@ class WidgetGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFE4E9),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
-                color: Color(0xFFFF69B4),
+                color: Color(0xFF6BB3FF),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
@@ -41,10 +41,7 @@ class WidgetGallery extends StatelessWidget {
                   SizedBox(height: 8),
                   Text(
                     '选择一个部件进行测试',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                 ],
               ),
@@ -169,7 +166,7 @@ class WidgetGallery extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: const Color(0xFFFF69B4),
+                color: const Color(0xFF6BB3FF),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(
@@ -193,19 +190,13 @@ class WidgetGallery extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    '体验完整的AI语言学习助手',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
+                    '体验完整的我的数学课代表',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFFFF69B4),
-            ),
+            const Icon(Icons.arrow_forward_ios, color: Color(0xFF6BB3FF)),
           ],
         ),
       ),
@@ -246,14 +237,10 @@ class WidgetGallery extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color.fromRGBO(255, 105, 180, 0.1),
+                color: const Color.fromRGBO(107, 179, 255, 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFFFF69B4),
-                size: 24,
-              ),
+              child: Icon(icon, color: const Color(0xFF6BB3FF), size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -270,19 +257,12 @@ class WidgetGallery extends StatelessWidget {
                   ),
                   Text(
                     description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey[400],
-              size: 18,
-            ),
+            Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 18),
           ],
         ),
       ),

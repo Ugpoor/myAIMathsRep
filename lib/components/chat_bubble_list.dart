@@ -16,12 +16,10 @@ class ChatMessage {
 
 class ChatBubbleList extends StatefulWidget {
   final List<ChatMessage> messages;
-  final String lang;
 
   const ChatBubbleList({
     super.key,
     required this.messages,
-    this.lang = 'cn',
   });
 
   @override
@@ -32,15 +30,9 @@ class _ChatBubbleListState extends State<ChatBubbleList> {
   final Map<int, bool> _showReasoning = {};
 
   String getAiAvatarAsset(bool showReasoning) {
-    if (widget.lang == 'cn') {
-      return showReasoning
-          ? 'assets/images/chinese_msg_brain.png'
-          : 'assets/images/chinese_msg.png';
-    } else {
-      return showReasoning
-          ? 'assets/images/english_msg_brain.png'
-          : 'assets/images/english_msg.png';
-    }
+    return showReasoning
+        ? 'assets/images/ai_maths_brain.png'
+        : 'assets/images/ai_maths.png';
   }
 
   @override
@@ -126,17 +118,28 @@ class _ChatBubbleListState extends State<ChatBubbleList> {
     return SizedBox(
       width: 48,
       height: 48,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: const Color(0xFFFFE4E9),
-        ),
-        child: const Center(
-          child: Icon(
-            Icons.person,
-            size: 28,
-            color: Color(0xFFFF69B4),
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          'assets/images/user_logo.png',
+          fit: BoxFit.cover,
+          width: 48,
+          height: 48,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFFE3F2FD),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.person,
+                  size: 28,
+                  color: Color(0xFF6BB3FF),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -146,29 +149,26 @@ class _ChatBubbleListState extends State<ChatBubbleList> {
     return SizedBox(
       width: 48,
       height: 64,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: const Color(0xFFFFE4E9),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            getAiAvatarAsset(showReasoning),
-            fit: BoxFit.cover,
-            width: 48,
-            height: 64,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: const Color(0xFFFFE4E9),
-                child: const Icon(
-                  Icons.chat_bubble,
-                  color: Color(0xFFFF69B4),
-                  size: 28,
-                ),
-              );
-            },
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          getAiAvatarAsset(showReasoning),
+          fit: BoxFit.cover,
+          width: 48,
+          height: 64,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFFE3F2FD),
+              ),
+              child: const Icon(
+                Icons.chat_bubble,
+                color: Color(0xFF6BB3FF),
+                size: 28,
+              ),
+            );
+          },
         ),
       ),
     );
