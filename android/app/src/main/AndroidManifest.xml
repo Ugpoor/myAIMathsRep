@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="myAILangTutor"
+        android:label="我的AI数学课代表 v1.0"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

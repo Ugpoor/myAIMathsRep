@@ -1,4 +1,3 @@
-
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
@@ -16,8 +15,8 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     return await openDatabase(
-      'myAILangTutor.db',
-      version: 2,
+      'myAIMathsRep.db',
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -138,6 +137,39 @@ class DatabaseHelper {
         lang TEXT DEFAULT 'cn'
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        student_id TEXT NOT NULL UNIQUE,
+        device_id TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE exams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        total_questions INTEGER DEFAULT 20,
+        score_per_question INTEGER DEFAULT 5,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE student_exams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER NOT NULL,
+        exam_id INTEGER NOT NULL,
+        wrong_answers TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (student_id) REFERENCES students(id),
+        FOREIGN KEY (exam_id) REFERENCES exams(id),
+        UNIQUE(student_id, exam_id)
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -153,6 +185,118 @@ class DatabaseHelper {
         )
       ''');
     }
+    if (oldVersion < 3) {
+      await db.execute('''
+        CREATE TABLE students (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          student_id TEXT NOT NULL UNIQUE,
+          device_id TEXT NOT NULL UNIQUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE exams (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          total_questions INTEGER DEFAULT 20,
+          score_per_question INTEGER DEFAULT 5,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE student_exams (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id INTEGER NOT NULL,
+          exam_id INTEGER NOT NULL,
+          wrong_answers TEXT DEFAULT '',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (student_id) REFERENCES students(id),
+          FOREIGN KEY (exam_id) REFERENCES exams(id),
+          UNIQUE(student_id, exam_id)
+        )
+      ''');
+    }
+
+    if (oldVersion < 4) {
+      // 练习记录表
+      await db.execute('''
+        CREATE TABLE practice_sessions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id INTEGER NOT NULL,
+          knowledge_points TEXT NOT NULL,
+          difficulty TEXT,
+          time_limit INTEGER,
+          status TEXT DEFAULT 'generated',
+          score REAL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (student_id) REFERENCES students(id)
+        )
+      ''');
+
+      // 练习题目表
+      await db.execute('''
+        CREATE TABLE practice_questions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_id INTEGER NOT NULL,
+          question_text TEXT NOT NULL,
+          question_type TEXT,
+          options TEXT,
+          standard_answer TEXT,
+          explanation TEXT,
+          knowledge_point TEXT,
+          FOREIGN KEY (session_id) REFERENCES practice_sessions(id)
+        )
+      ''');
+
+      // 学生答案表
+      await db.execute('''
+        CREATE TABLE student_answers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          question_id INTEGER NOT NULL,
+          student_id INTEGER NOT NULL,
+          answer_text TEXT,
+          is_correct INTEGER DEFAULT 0,
+          score REAL,
+          error_analysis TEXT,
+          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (question_id) REFERENCES practice_questions(id),
+          FOREIGN KEY (student_id) REFERENCES students(id)
+        )
+      ''');
+
+      // 课件表
+      await db.execute('''
+        CREATE TABLE courseware (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          knowledge_point TEXT,
+          cognitive_mode TEXT,
+          content TEXT,
+          content_type TEXT,
+          view_count INTEGER DEFAULT 0,
+          status TEXT DEFAULT 'draft',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
+
+      // 教学大纲表
+      await db.execute('''
+        CREATE TABLE syllabus (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          chapter TEXT NOT NULL,
+          section TEXT,
+          knowledge_point TEXT NOT NULL,
+          difficulty TEXT,
+          exam_weight REAL,
+          description TEXT,
+          version INTEGER DEFAULT 1,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
+    }
   }
 
   Future<int> insert(String table, Map<String, dynamic> data) async {
@@ -160,7 +304,8 @@ class DatabaseHelper {
     return await db.insert(table, data);
   }
 
-  Future<List<Map<String, dynamic>>> query(String table, {
+  Future<List<Map<String, dynamic>>> query(
+    String table, {
     String? where,
     List<dynamic>? whereArgs,
     String? orderBy,
@@ -178,7 +323,9 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> update(String table, Map<String, dynamic> data, {
+  Future<int> update(
+    String table,
+    Map<String, dynamic> data, {
     required String where,
     required List<dynamic> whereArgs,
   }) async {
@@ -186,7 +333,8 @@ class DatabaseHelper {
     return await db.update(table, data, where: where, whereArgs: whereArgs);
   }
 
-  Future<int> delete(String table, {
+  Future<int> delete(
+    String table, {
     required String where,
     required List<dynamic> whereArgs,
   }) async {
@@ -194,7 +342,11 @@ class DatabaseHelper {
     return await db.delete(table, where: where, whereArgs: whereArgs);
   }
 
-  Future<int> count(String table, {String? where, List<dynamic>? whereArgs}) async {
+  Future<int> count(
+    String table, {
+    String? where,
+    List<dynamic>? whereArgs,
+  }) async {
     final db = await database;
     final result = await db.rawQuery(
       'SELECT COUNT(*) FROM $table${where != null ? " WHERE $where" : ""}',

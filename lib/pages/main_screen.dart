@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'chat_page.dart';
 import 'inbox_page.dart';
+import 'device_overview_page.dart';
 import '../components/chat_bubble_list.dart';
 import '../services/llm_service.dart';
+import '../services/student_service.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -22,14 +24,16 @@ class _MainScreenState extends State<MainScreen> {
   final List<ChatMessage> _chatMessages = [];
 
   final LlmService _llmService = LlmService();
+  final StudentService _studentService = StudentService();
 
   @override
   void initState() {
     super.initState();
-    _initLlmService();
+    _initServices();
   }
 
-  Future<void> _initLlmService() async {
+  Future<void> _initServices() async {
+    await _studentService.initFakeData();
     await _llmService.init();
 
     final welcomeMessage = ChatMessage(
@@ -74,9 +78,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _navigateToPage(String pageName) {
-    setState(() {
-      _currentPage = pageName;
-    });
+    if (pageName == 'device_overview') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const DeviceOverviewPage()),
+      );
+    } else {
+      setState(() {
+        _currentPage = pageName;
+      });
+    }
   }
 
   void _goBack() {

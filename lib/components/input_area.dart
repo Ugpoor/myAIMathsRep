@@ -6,6 +6,7 @@ class InputArea extends StatefulWidget {
   final VoidCallback? onSend;
   final Function(bool)? onVoiceStateChanged;
   final ValueChanged<String>? onTextChanged;
+  final String? hintText;
 
   const InputArea({
     super.key,
@@ -13,6 +14,7 @@ class InputArea extends StatefulWidget {
     this.onSend,
     this.onVoiceStateChanged,
     this.onTextChanged,
+    this.hintText,
   });
 
   @override
@@ -24,7 +26,7 @@ class _InputAreaState extends State<InputArea> {
   late TextEditingController _localController;
 
   String get hintText {
-    return '你好，我要练习数学';
+    return widget.hintText ?? '你好，我要练习数学';
   }
 
   @override

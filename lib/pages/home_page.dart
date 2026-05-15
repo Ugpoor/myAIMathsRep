@@ -2,11 +2,21 @@ import 'package:flutter/material.dart';
 import '../components/app_title_bar.dart';
 import '../components/ai_reply_bar.dart';
 import '../components/submenu_tabs.dart';
-import '../components/menu_grid.dart';
-import '../components/efficiency_section.dart';
 import '../components/input_area.dart';
 import '../services/llm_service.dart';
 import '../components/chat_bubble_list.dart';
+import '../components/dashboard_cards.dart';
+import '../components/function_buttons.dart';
+import '../components/date_header.dart';
+import 'practice_page.dart';
+import 'homework_page.dart';
+import 'diagnosis_page.dart';
+import 'courseware_page.dart';
+import 'question_bank_page.dart';
+import 'group_learning_page.dart';
+import 'knowledge_page.dart';
+import 'student_management_page.dart';
+import 'device_overview_page.dart';
 
 class HomePage extends StatefulWidget {
   final VoidCallback onExpandChat;
@@ -54,11 +64,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      final userMessage = ChatMessage(
-        sender: '用户',
-        text: text,
-        isAI: false,
-      );
+      final userMessage = ChatMessage(sender: '用户', text: text, isAI: false);
       widget.onMessageAdded?.call(userMessage);
 
       final response = await _llmService.generateResponse(text);
@@ -78,47 +84,75 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _handleFunctionTap(int index) {
+    final pages = [
+      const DiagnosisPage(),
+      const HomeworkPage(),
+      const PracticePage(),
+      const KnowledgePage(),
+      const StudentManagementPage(),
+      const QuestionBankPage(),
+      const CoursewarePage(),
+      const GroupLearningPage(),
+      const DeviceOverviewPage(),
+    ];
+
+    if (index < pages.length) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => pages[index]),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const homeTabs = ['收件箱', '错误本', '知识点', '习题集', '作品集', '技能库'];
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFE3F2FD),
       body: SafeArea(
         child: Column(
           children: [
-            AppTitleBar(
-              title: '我的数学课代表',
-            ),
+            AppTitleBar(title: 'AI数学课代表'),
             AIReplyBar(
               lastAiMessage: widget.lastAiMessage,
               onPullDown: widget.onExpandChat,
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MenuGrid(
-                      onItemTap: widget.onMenuItemTap,
+                    const DateHeader(),
+                    const SizedBox(height: 8),
+                    DashboardCards(
+                      onDeviceOnlineTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DeviceOverviewPage(),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 24),
-                    const EfficiencySection(),
+                    const SizedBox(height: 6),
+                    Container(
+                      height: 1,
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 6),
+                    FunctionButtons(onItemTap: _handleFunctionTap),
                   ],
                 ),
               ),
             ),
             SubmenuTabs(
-              tabs: homeTabs,
-              selectedTab: widget.selectedTab,
-              onTabSelected: widget.onTabSelected,
+              tabs: const [],
+              selectedTab: '',
+              onTabSelected: (tab) {},
               onHomeTap: widget.onHomeTap,
             ),
-            InputArea(
-              controller: _textController,
-              onSend: _handleSend,
-            ),
+            InputArea(controller: _textController, onSend: _handleSend),
           ],
         ),
       ),

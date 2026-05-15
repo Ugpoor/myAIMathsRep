@@ -1,4 +1,4 @@
-package com.example.myAILangTutor
+package com.example.myAIMathsRep
 
 import io.flutter.embedding.android.FlutterActivity
 

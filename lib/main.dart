@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pages/widget_gallery.dart';
+import 'pages/main_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '我的数学课代表',
       theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-      home: const WidgetGallery(),
+      home: const MainScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
