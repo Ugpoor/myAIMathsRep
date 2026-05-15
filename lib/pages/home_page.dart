@@ -121,11 +121,11 @@ class _HomePageState extends State<HomePage> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 4),
                 child: Column(
                   children: [
                     const DateHeader(),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     DashboardCards(
                       onDeviceOnlineTap: () => Navigator.push(
                         context,
@@ -134,13 +134,13 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Container(
                       height: 1,
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       color: Colors.grey[300],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     FunctionButtons(onItemTap: _handleFunctionTap),
                   ],
                 ),

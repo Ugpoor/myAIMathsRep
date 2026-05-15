@@ -55,9 +55,9 @@ class FunctionButtons extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 4,
       childAspectRatio: 1.0,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      mainAxisSpacing: 6,
-      crossAxisSpacing: 6,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
       children: functionItems.asMap().entries.map((entry) {
         final index = entry.key;
         final item = entry.value;
@@ -82,25 +82,19 @@ class FunctionButtons extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-            ),
-          ],
+          borderRadius: BorderRadius.circular(10),
         ),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 28, color: Colors.white),
-            const SizedBox(height: 8),
+            Icon(icon, size: 22, color: Colors.white),
+            const SizedBox(height: 4),
             Text(
               title,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,

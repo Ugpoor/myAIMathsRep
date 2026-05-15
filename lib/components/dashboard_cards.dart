@@ -113,10 +113,10 @@ class _DashboardCardsState extends State<DashboardCards> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 4,
-      childAspectRatio: 1.2,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      mainAxisSpacing: 6,
-      crossAxisSpacing: 6,
+      childAspectRatio: 1.25,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
       children: dashboardItems.asMap().entries.map((entry) {
         final item = entry.value;
         final index = entry.key;
@@ -154,50 +154,44 @@ class _DashboardCardsState extends State<DashboardCards> {
     return Container(
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, spreadRadius: 1, blurRadius: 2),
-        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 9,
               color: bgColor == Colors.white
                   ? Colors.grey[600]
                   : Colors.white70,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             value,
             style: TextStyle(
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: valueColor,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           if (change.isNotEmpty)
             Row(
               children: [
-                Icon(Icons.trending_up, size: 12, color: changeColor),
-                Text(
-                  change,
-                  style: TextStyle(fontSize: 10, color: changeColor),
-                ),
+                Icon(Icons.trending_up, size: 10, color: changeColor),
+                Text(change, style: TextStyle(fontSize: 9, color: changeColor)),
               ],
             ),
           if (percentage.isNotEmpty)
             Text(
               percentage,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 9,
                 color: bgColor == Colors.white
                     ? Colors.grey[500]
                     : Colors.white70,
