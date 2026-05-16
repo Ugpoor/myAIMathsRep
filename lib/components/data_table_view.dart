@@ -11,6 +11,7 @@ class DataTableView extends StatelessWidget {
   final Color evenRowColor;
   final Color oddRowColor;
   final void Function(int)? onRowTap;
+  final bool showHeaderOnly;
 
   const DataTableView({
     super.key,
@@ -22,6 +23,7 @@ class DataTableView extends StatelessWidget {
     this.evenRowColor = Colors.white,
     this.oddRowColor = const Color(0xFFF5F5F5),
     this.onRowTap,
+    this.showHeaderOnly = false,
   });
 
   @override
@@ -79,29 +81,29 @@ class DataTableView extends StatelessWidget {
     return GestureDetector(
       onTap: onRowTap != null ? () => onRowTap!(rowIndex) : null,
       child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      decoration: BoxDecoration(
-        color: isEven ? evenRowColor : oddRowColor,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200, width: 0.5),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isEven ? evenRowColor : oddRowColor,
+          border: Border(
+            bottom: BorderSide(color: Colors.grey.shade200, width: 0.5),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          ...row.map((cell) {
-            return Expanded(
-              child: Text(
-                cell,
-                style: const TextStyle(fontSize: 13),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-              ),
-            );
-          }).toList(),
-          if (rowActions != null && rowActions!.isNotEmpty)
-            rowActions![rowIndex](rowIndex),
-        ],
-      ),
+        child: Row(
+          children: [
+            ...row.map((cell) {
+              return Expanded(
+                child: Text(
+                  cell,
+                  style: const TextStyle(fontSize: 13),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            }).toList(),
+            if (rowActions != null && rowActions!.isNotEmpty)
+              rowActions![rowIndex](rowIndex),
+          ],
+        ),
       ),
     );
   }

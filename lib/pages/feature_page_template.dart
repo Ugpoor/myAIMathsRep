@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../components/app_title_bar.dart';
 import '../components/ai_reply_bar.dart';
-import '../components/date_header.dart';
+import '../components/collapsible_date_header.dart';
 import '../components/submenu_tabs.dart';
 import '../components/input_area.dart';
 import '../components/data_table_view.dart';
@@ -65,7 +65,7 @@ class _FeaturePageTemplateState extends State<FeaturePageTemplate> {
                 // 展开聊天记录
               },
             ),
-            const DateHeader(),
+            const CollapsibleDateHeader(),
             const SizedBox(height: 8),
             Expanded(
               child: Padding(
