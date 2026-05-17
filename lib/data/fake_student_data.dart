@@ -64,11 +64,15 @@ List<Map<String, dynamic>> generateStudentData() {
     final mindsetRisk = _random.nextInt(100);
     final behaviorRisk = _random.nextInt(100);
 
+    final groupIndex = (i - 1) ~/ 3;
+    final groupName = '小组${(groupIndex + 1).toString().padLeft(2, '0')}';
+
     students.add({
       'id': i.toString().padLeft(2, '0'),
       'name': '$surname$givenName',
       'studentId': '2026${i.toString().padLeft(3, '0')}',
       'deviceId': 'DEV10${i.toString().padLeft(2, '0')}',
+      'group': groupName,
       'score': score,
       'knowledge': knowledge,
       'literacy': literacy,
@@ -82,6 +86,11 @@ List<Map<String, dynamic>> generateStudentData() {
 
   return students;
 }
+
+final List<String> groupNames = List.generate(
+  12,
+  (i) => '小组${(i + 1).toString().padLeft(2, '0')}',
+);
 
 final List<Map<String, dynamic>> studentData = generateStudentData();
 

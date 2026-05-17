@@ -95,14 +95,16 @@ class _HomeworkPageState extends State<HomeworkPage> {
     {'题号': 'Q006', '知识点': '实数运算', '难度': '简单', '题型': '计算题'},
   ];
 
-  // 答卷数据
-  final List<Map<String, String>> _answerData = [
+  // 答卷数据（包含批阅状态）
+  List<Map<String, dynamic>> _answerData = [
     {
       '编号': 'A001',
       '试卷编号': 'H001',
       '学号': '2026001',
       '姓名': '张三',
-      '状态': '已批改',
+      '状态': '已完成',
+      'AI批阅': 'true',
+      '需修订': 'false',
       '错题数': '2',
       '未答题': '0',
       '得分': '80',
@@ -112,136 +114,164 @@ class _HomeworkPageState extends State<HomeworkPage> {
       '试卷编号': 'H001',
       '学号': '2026002',
       '姓名': '李四',
-      '状态': '进行中',
-      '错题数': '0',
-      '未答题': '3',
-      '得分': '-',
+      '状态': '已完成',
+      'AI批阅': 'true',
+      '需修订': 'true',
+      '错题数': '5',
+      '未答题': '0',
+      '得分': '65',
     },
     {
       '编号': 'A003',
       '试卷编号': 'H001',
       '学号': '2026003',
       '姓名': '王五',
-      '状态': '完成',
-      '错题数': '0',
+      '状态': '已完成',
+      'AI批阅': 'true',
+      '需修订': 'false',
+      '错题数': '1',
       '未答题': '0',
-      '得分': '-',
+      '得分': '92',
     },
     {
       '编号': 'A004',
       '试卷编号': 'H001',
       '学号': '2026004',
       '姓名': '赵六',
-      '状态': '未开始',
-      '错题数': '0',
+      '状态': '已完成',
+      'AI批阅': 'true',
+      '需修订': 'false',
+      '错题数': '3',
       '未答题': '0',
-      '得分': '-',
+      '得分': '75',
     },
     {
       '编号': 'A005',
       '试卷编号': 'H001',
       '学号': '2026005',
       '姓名': '钱七',
-      '状态': '订正完成',
-      '错题数': '0',
+      '状态': '已完成',
+      'AI批阅': 'true',
+      '需修订': 'true',
+      '错题数': '4',
       '未答题': '0',
-      '得分': '90',
+      '得分': '70',
     },
     {
       '编号': 'A006',
       '试卷编号': 'H001',
       '学号': '2026006',
       '姓名': '孙八',
-      '状态': '已批改',
-      '错题数': '3',
+      '状态': '已完成',
+      'AI批阅': 'true',
+      '需修订': 'false',
+      '错题数': '2',
       '未答题': '0',
-      '得分': '70',
+      '得分': '88',
     },
   ];
 
+  // 单题批阅数据（可编辑）
+  Map<String, Map<String, dynamic>> _questionReviews = {};
+
   // 单题数据
-  final List<Map<String, String>> _questionDetails = [
+  List<Map<String, String>> _questionDetails = [
     {
       'id': '1',
       '题目': '已知二次函数y=ax²+bx+c经过点(1,0)、(2,0)、(3,6)，求a、b、c的值。',
       '解答': 'a=3, b=-10, c=7',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '解答正确',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '解答正确',
     },
     {
       'id': '2',
       '题目': '求二次函数y=x²-4x+3的顶点坐标和对称轴。',
       '解答': '顶点(2,-1)，对称轴x=2',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '',
     },
     {
       'id': '3',
       '题目': '若二次函数y=ax²+bx+c的图像开口向下，且顶点在原点，求a、b、c满足的条件。',
       '解答': 'a<0, b=0',
-      '得分': '5',
-      '结果': '错误',
-      '批注': '缺少c=0的条件',
+      'AI得分': '5',
+      'AI结果': '错误',
+      'AI批注': '缺少c=0的条件',
     },
     {
       'id': '4',
       '题目': '已知二次函数y=2x²-4x+1，求其在x=3处的函数值。',
       '解答': 'y=2*9-12+1=7',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '',
     },
     {
       'id': '5',
       '题目': '二次函数y=x²-mx+4与x轴有两个交点，求m的取值范围。',
       '解答': 'm>4或m<-4',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '',
     },
     {
       'id': '6',
       '题目': '画出二次函数y=x²-2x-3的图像草图。',
       '解答': '顶点(1,-4)，与x轴交点(-1,0)(3,0)',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '',
     },
     {
       'id': '7',
       '题目': '求函数y=|x²-4|的单调区间。',
       '解答': '(-∞,-2)减，(-2,0)增，(0,2)减，(2,+∞)增',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '',
     },
     {
       'id': '8',
       '题目': '已知二次函数图像过点(0,3)，且对称轴为x=1，最小值为2，求函数解析式。',
       '解答': 'y=(x-1)²+2',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '',
     },
     {
       'id': '9',
       '题目': '解方程：x²-5x+6=0',
       '解答': 'x=2',
-      '得分': '5',
-      '结果': '错误',
-      '批注': '漏解x=3',
+      'AI得分': '5',
+      'AI结果': '错误',
+      'AI批注': '漏解x=3',
     },
     {
       'id': '10',
       '题目': '用配方法解方程：x²+4x-5=0',
       '解答': '(x+2)²=9，x=1或x=-5',
-      '得分': '10',
-      '结果': '正确',
-      '批注': '',
+      'AI得分': '10',
+      'AI结果': '正确',
+      'AI批注': '',
     },
   ];
+
+  void _initQuestionReviews() {
+    _questionReviews.clear();
+    for (var q in _questionDetails) {
+      _questionReviews[q['id']!] = {
+        'AI得分': q['AI得分'],
+        'AI结果': q['AI结果'],
+        'AI批注': q['AI批注'],
+        '得分': q['AI得分'],
+        '结果': q['AI结果'],
+        '批注': q['AI批注'],
+        '需修订': (q['AI结果'] == '错误').toString(),
+      };
+    }
+  }
 
   static const _filterFields = [
     FilterField(
@@ -266,11 +296,21 @@ class _HomeworkPageState extends State<HomeworkPage> {
     }).toList();
   }
 
+  List<Map<String, String>> get _pendingReviewData {
+    return _allData.where((row) {
+      return row['状态'] == '已完成';
+    }).toList();
+  }
+
   bool _canEdit(String status) => status == '未生成';
   bool _canDelete(String status) => status == '未生成';
 
   @override
   Widget build(BuildContext context) {
+    final isReviewable =
+        _currentView == 'answer' &&
+        _answerData.any((a) => a['状态'] == '已完成' && a['AI批阅'] == 'true');
+
     return Scaffold(
       backgroundColor: const Color(0xFFE3F2FD),
       body: SafeArea(
@@ -288,10 +328,16 @@ class _HomeworkPageState extends State<HomeworkPage> {
             ),
             SubmenuTabs(
               tabs: _currentView == 'paper'
-                  ? const ['筛选', '新增', '编辑', '删除']
+                  ? (_selectedTab == '批阅'
+                        ? const ['批阅', '筛选', '新增', '编辑']
+                        : const ['批阅', '筛选', '新增', '编辑'])
                   : (_currentView == 'answer'
-                        ? const ['返回', '批阅', '导出']
-                        : const ['返回']),
+                        ? (isReviewable
+                              ? const ['返回', '保存', '提交', '导出']
+                              : const ['返回', '导出'])
+                        : (_currentView == 'review'
+                              ? const ['返回']
+                              : const ['返回'])),
               selectedTab: _currentView == 'paper' ? _selectedTab : '',
               onTabSelected: (tab) {
                 if (_currentView == 'paper') {
@@ -302,6 +348,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       _currentView = 'paper';
                       _currentPaperId = null;
                     });
+                  } else if (tab == '提交') {
+                    _submitReviews();
+                  } else if (tab == '保存') {
+                    _saveReviews();
                   }
                 } else {
                   if (tab == '返回') {
@@ -331,6 +381,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
   Widget _buildContent() {
     if (_currentView == 'paper') {
       switch (_selectedTab) {
+        case '批阅':
+          return _buildReviewFilterView();
         case '筛选':
           return _buildFilterView();
         case '新增':
@@ -344,9 +396,79 @@ class _HomeworkPageState extends State<HomeworkPage> {
       }
     } else if (_currentView == 'answer') {
       return _buildAnswerView();
+    } else if (_currentView == 'review') {
+      return _buildReviewView();
     } else {
       return _buildSingleQuestionView();
     }
+  }
+
+  Widget _buildReviewFilterView() {
+    final data = _pendingReviewData;
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '共 ${data.length} 份待批阅试卷',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              final item = data[index];
+              final isSelected = _selectedRows.contains(item['编号']);
+              return Card(
+                child: ListTile(
+                  leading: Checkbox(
+                    value: isSelected,
+                    onChanged: (value) {
+                      setState(() {
+                        if (value == true) {
+                          _selectedRows.add(item['编号']!);
+                        } else {
+                          _selectedRows.remove(item['编号']);
+                        }
+                      });
+                    },
+                  ),
+                  title: Text(item['类型'] ?? ''),
+                  subtitle: Text(
+                    '${item['编号']} | ${item['题目数']}题 | ${item['总分']}分',
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange[100],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '待批阅',
+                      style: TextStyle(color: Colors.orange[800], fontSize: 12),
+                    ),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _currentView = 'answer';
+                      _currentPaperId = item['编号'];
+                      _initQuestionReviews();
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildAnswerView() {
@@ -418,12 +540,16 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 );
               }
               final row = _answerData[index - 1];
+              final needsReview = row['状态'] == '已完成' && row['AI批阅'] == 'true';
               return GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _currentView = 'single';
-                    _currentAnswerId = row['编号'];
-                  });
+                  if (needsReview) {
+                    setState(() {
+                      _currentView = 'review';
+                      _currentAnswerId = row['编号'];
+                      _initQuestionReviews();
+                    });
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -431,21 +557,42 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     horizontal: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: index % 2 == 0 ? Colors.white : Colors.grey[50],
+                    color: needsReview
+                        ? Colors.orange[50]
+                        : (index % 2 == 0 ? Colors.white : Colors.grey[50]),
                     border: Border(
                       bottom: BorderSide(
                         color: Colors.grey[200] ?? Colors.grey,
                       ),
+                      left: needsReview
+                          ? BorderSide(color: Colors.orange[400]!, width: 3)
+                          : BorderSide.none,
                     ),
                   ),
                   child: Row(
                     children: [
-                      _answerCell(row['学号']!, flex: 2),
-                      _answerCell(row['姓名']!, flex: 1),
-                      _answerStatusCell(row['状态']!, flex: 1),
-                      _answerCell(row['错题数']!, flex: 1),
-                      _answerCell(row['未答题']!, flex: 1),
-                      _answerCell(row['得分']!, flex: 1),
+                      _answerCell(row['学号'].toString(), flex: 2),
+                      _answerCell(row['姓名'].toString(), flex: 1),
+                      _answerStatusCell(row['状态'].toString(), flex: 1),
+                      _answerCell(row['错题数'].toString(), flex: 1),
+                      _answerCell(row['未答题'].toString(), flex: 1),
+                      _answerCell(row['得分'].toString(), flex: 1),
+                      if (needsReview)
+                        Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red[100],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: const Text(
+                            '待批',
+                            style: TextStyle(fontSize: 10, color: Colors.red),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -511,6 +658,280 @@ class _HomeworkPageState extends State<HomeworkPage> {
         style: TextStyle(fontSize: 13, color: color),
         textAlign: TextAlign.center,
       ),
+    );
+  }
+
+  void _submitReviews() {
+    setState(() {
+      _aiMessage = '已提交所有批阅，状态已更新为已批阅';
+      for (var i = 0; i < _answerData.length; i++) {
+        if (_answerData[i]['状态'] == '已完成' && _answerData[i]['AI批阅'] == 'true') {
+          _answerData[i]['状态'] = '已批阅';
+        }
+      }
+    });
+  }
+
+  void _saveReviews() {
+    setState(() {
+      _aiMessage = '批阅已保存';
+    });
+  }
+
+  Widget _buildReviewView() {
+    final answer = _answerData.firstWhere(
+      (a) => a['编号'] == _currentAnswerId,
+      orElse: () => {},
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.orange[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.orange[200]!, width: 2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.edit_document, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '批阅模式',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange[100],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('AI已预批阅', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text('学生: ${answer['姓名']} (${answer['学号']})'),
+              Text('当前状态: ${answer['状态']}'),
+              const Text(
+                '请检查并修订AI批阅结果',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          '题目批阅',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _questionDetails.length,
+            itemBuilder: (context, index) {
+              final q = _questionDetails[index];
+              final qId = q['id']!;
+              final review = _questionReviews[qId];
+              final aiResult = q['AI结果'];
+              final currentResult = review?['结果'] ?? aiResult;
+              final isCorrect = currentResult == '正确';
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '第${q['id']}题',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: aiResult == '正确'
+                                  ? Colors.green[100]
+                                  : Colors.red[100],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'AI: $aiResult',
+                              style: TextStyle(
+                                color: aiResult == '正确'
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Radio<String>(
+                                value: '正确',
+                                groupValue: currentResult,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _questionReviews[qId]!['结果'] = value;
+                                  });
+                                },
+                              ),
+                              const Text(
+                                '✓',
+                                style: TextStyle(color: Colors.green),
+                              ),
+                              const SizedBox(width: 12),
+                              Radio<String>(
+                                value: '错误',
+                                groupValue: currentResult,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _questionReviews[qId]!['结果'] = value;
+                                  });
+                                },
+                              ),
+                              const Text(
+                                '✗',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(q['题目']!, style: const TextStyle(fontSize: 13)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '学生解答: ${q['解答']}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Text('得分: ', style: TextStyle(fontSize: 13)),
+                          SizedBox(
+                            width: 60,
+                            child: TextField(
+                              controller: TextEditingController(
+                                text: review?['得分'] ?? q['AI得分'],
+                              ),
+                              onChanged: (value) {
+                                _questionReviews[qId]!['得分'] = value;
+                              },
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                isDense: true,
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'AI预设: ${q['AI得分']}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '批示:',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.yellow[50],
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.yellow[200]!),
+                        ),
+                        child: TextField(
+                          controller: TextEditingController(
+                            text: review?['批注'] ?? q['AI批注'],
+                          ),
+                          onChanged: (value) {
+                            _questionReviews[qId]!['批注'] = value;
+                          },
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            hintText: '输入批示内容...',
+                            border: InputBorder.none,
+                            isDense: true,
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                      if (aiResult != currentResult)
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.edit,
+                                size: 14,
+                                color: Colors.blue,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '已修订: AI判定为$aiResult，您改为$currentResult',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

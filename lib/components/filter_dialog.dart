@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 /// 筛选条件数据模型
 class FilterField {
-  final String name;        // 列名（中文）
-  final String key;         // 列键
-  final bool isNumeric;     // 是否数值类型（显示范围筛选）
+  final String name; // 列名（中文）
+  final String key; // 列键
+  final bool isNumeric; // 是否数值类型（显示范围筛选）
   final List<String>? options; // 选项列表（非数值时使用）
 
   const FilterField({
@@ -17,16 +17,16 @@ class FilterField {
 
 /// 筛选结果
 class FilterResult {
-  final Map<String, String?> selectedValues;   // 选中值 key -> value
-  final Map<String, RangeValue?> rangeValues;  // 范围值 key -> (min, max)
+  final Map<String, String?> selectedValues; // 选中值 key -> value
+  final Map<String, RangeValue?> rangeValues; // 范围值 key -> (min, max)
 
-  const FilterResult({
-    required this.selectedValues,
-    required this.rangeValues,
-  });
+  const FilterResult({required this.selectedValues, required this.rangeValues});
 
-  bool get isEmpty => selectedValues.values.every((v) => v == null) &&
+  bool get isEmpty =>
+      selectedValues.values.every((v) => v == null) &&
       rangeValues.values.every((v) => v == null);
+
+  bool get isNotEmpty => !isEmpty;
 }
 
 class RangeValue {
@@ -44,11 +44,7 @@ class FilterDialog extends StatefulWidget {
   /// 当前已选中的筛选条件
   final FilterResult? initialResult;
 
-  const FilterDialog({
-    super.key,
-    required this.fields,
-    this.initialResult,
-  });
+  const FilterDialog({super.key, required this.fields, this.initialResult});
 
   /// 显示筛选弹窗，返回筛选结果（取消返回null）
   static Future<FilterResult?> show(
@@ -58,10 +54,8 @@ class FilterDialog extends StatefulWidget {
   }) {
     return showDialog<FilterResult>(
       context: context,
-      builder: (context) => FilterDialog(
-        fields: fields,
-        initialResult: initialResult,
-      ),
+      builder: (context) =>
+          FilterDialog(fields: fields, initialResult: initialResult),
     );
   }
 
@@ -82,7 +76,8 @@ class _FilterDialogState extends State<FilterDialog> {
     _expanded = {};
 
     for (final field in widget.fields) {
-      _selectedValues[field.key] = widget.initialResult?.selectedValues[field.key];
+      _selectedValues[field.key] =
+          widget.initialResult?.selectedValues[field.key];
       _rangeValues[field.key] = widget.initialResult?.rangeValues[field.key];
       _expanded[field.key] = false;
     }
@@ -94,7 +89,9 @@ class _FilterDialogState extends State<FilterDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -111,11 +108,21 @@ class _FilterDialogState extends State<FilterDialog> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('筛选条件',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    '筛选条件',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.close, color: Colors.white, size: 20),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ],
               ),
@@ -127,7 +134,9 @@ class _FilterDialogState extends State<FilterDialog> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: widget.fields.map((field) => _buildFieldItem(field)).toList(),
+                  children: widget.fields
+                      .map((field) => _buildFieldItem(field))
+                      .toList(),
                 ),
               ),
             ),
@@ -146,9 +155,14 @@ class _FilterDialogState extends State<FilterDialog> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(color: Colors.grey.shade400),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: const Text('重置', style: TextStyle(color: Colors.grey)),
+                      child: const Text(
+                        '重置',
+                        style: TextStyle(color: Colors.grey),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -156,16 +170,21 @@ class _FilterDialogState extends State<FilterDialog> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context, FilterResult(
-                          selectedValues: Map.from(_selectedValues),
-                          rangeValues: Map.from(_rangeValues),
-                        ));
+                        Navigator.pop(
+                          context,
+                          FilterResult(
+                            selectedValues: Map.from(_selectedValues),
+                            rangeValues: Map.from(_rangeValues),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6BB3FF),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: const Text('应用筛选'),
                     ),
@@ -190,7 +209,8 @@ class _FilterDialogState extends State<FilterDialog> {
         children: [
           // 字段标题行（可展开/收起）
           GestureDetector(
-            onTap: () => setState(() => _expanded[field.key] = !_expanded[field.key]!),
+            onTap: () =>
+                setState(() => _expanded[field.key] = !_expanded[field.key]!),
             behavior: HitTestBehavior.opaque,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -199,21 +219,38 @@ class _FilterDialogState extends State<FilterDialog> {
                 children: [
                   Row(
                     children: [
-                      Text(field.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      Text(
+                        field.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
                       if (_hasActiveFilter(field))
                         Container(
                           margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.red.shade100,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text('●', style: TextStyle(fontSize: 8, color: Colors.red.shade700)),
+                          child: Text(
+                            '●',
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
                         ),
                     ],
                   ),
                   Icon(
-                    _expanded[field.key]! ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    _expanded[field.key]!
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                     color: Colors.grey,
                     size: 20,
                   ),
@@ -247,7 +284,13 @@ class _FilterDialogState extends State<FilterDialog> {
       children: options.map((option) {
         final isSelected = _selectedValues[field.key] == option;
         return ChoiceChip(
-          label: Text(option, style: TextStyle(fontSize: 13, color: isSelected ? Colors.white : Colors.black87)),
+          label: Text(
+            option,
+            style: TextStyle(
+              fontSize: 13,
+              color: isSelected ? Colors.white : Colors.black87,
+            ),
+          ),
           selected: isSelected,
           selectedColor: const Color(0xFF6BB3FF),
           backgroundColor: Colors.grey.shade100,
@@ -272,20 +315,31 @@ class _FilterDialogState extends State<FilterDialog> {
             decoration: InputDecoration(
               hintText: '最小值',
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
               filled: true,
               fillColor: Colors.grey.shade50,
             ),
             onChanged: (value) {
               final current = _rangeValues[field.key];
-              _rangeValues[field.key] = RangeValue(min: value.isEmpty ? null : value, max: current?.max);
+              _rangeValues[field.key] = RangeValue(
+                min: value.isEmpty ? null : value,
+                max: current?.max,
+              );
             },
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text('~', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+          child: Text(
+            '~',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+          ),
         ),
         Expanded(
           child: TextField(
@@ -294,14 +348,22 @@ class _FilterDialogState extends State<FilterDialog> {
             decoration: InputDecoration(
               hintText: '最大值',
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
               filled: true,
               fillColor: Colors.grey.shade50,
             ),
             onChanged: (value) {
               final current = _rangeValues[field.key];
-              _rangeValues[field.key] = RangeValue(min: current?.min, max: value.isEmpty ? null : value);
+              _rangeValues[field.key] = RangeValue(
+                min: current?.min,
+                max: value.isEmpty ? null : value,
+              );
             },
           ),
         ),

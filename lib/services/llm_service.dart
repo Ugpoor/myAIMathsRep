@@ -13,10 +13,19 @@ class LlmService {
   String? _modelName;
 
   Future<void> init() async {
-    await dotenv.load();
-    _apiKey = dotenv.env['API_KEY'];
-    _baseUrl = dotenv.env['BASE_URL'];
-    _modelName = dotenv.env['MODEL_NAME'] ?? 'doubao-seed-2-0-lite-260215';
+    try {
+      await dotenv.load();
+      _apiKey = dotenv.env['API_KEY'];
+      _baseUrl = dotenv.env['BASE_URL'];
+      _modelName = dotenv.env['MODEL_NAME'] ?? 'doubao-seed-2-0-lite-260215';
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to load .env file: $e');
+      }
+      _apiKey = null;
+      _baseUrl = null;
+      _modelName = 'doubao-seed-2-0-lite-260215';
+    }
   }
 
   Future<Map<String, dynamic>> generateResponse(String prompt) async {
@@ -56,7 +65,7 @@ class LlmService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         String content = '';
         String reasoning = '';
 
@@ -65,7 +74,8 @@ class LlmService {
             if (item['type'] == 'message') {
               if (item['content'] is List && item['content'].isNotEmpty) {
                 for (var contentItem in item['content']) {
-                  if (contentItem['type'] == 'output_text' && contentItem['text'] != null) {
+                  if (contentItem['type'] == 'output_text' &&
+                      contentItem['text'] != null) {
                     content = contentItem['text'];
                     break;
                   }
@@ -74,7 +84,8 @@ class LlmService {
             } else if (item['type'] == 'reasoning') {
               if (item['summary'] is List && item['summary'].isNotEmpty) {
                 for (var summaryItem in item['summary']) {
-                  if (summaryItem['type'] == 'summary_text' && summaryItem['text'] != null) {
+                  if (summaryItem['type'] == 'summary_text' &&
+                      summaryItem['text'] != null) {
                     reasoning = summaryItem['text'];
                     break;
                   }
@@ -117,11 +128,7 @@ class LlmService {
       if (kDebugMode) {
         debugPrint('Request Error: $e');
       }
-      return {
-        'success': false,
-        'response': '请求出错: $e',
-        'reasoning': '网络错误',
-      };
+      return {'success': false, 'response': '请求出错: $e', 'reasoning': '网络错误'};
     }
   }
 

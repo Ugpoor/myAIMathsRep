@@ -144,6 +144,23 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         student_id TEXT NOT NULL UNIQUE,
         device_id TEXT NOT NULL UNIQUE,
+        group_name TEXT,
+        score INTEGER DEFAULT 0,
+        knowledge INTEGER DEFAULT 0,
+        literacy INTEGER DEFAULT 0,
+        overall INTEGER DEFAULT 0,
+        trend_risk INTEGER DEFAULT 0,
+        ability_risk INTEGER DEFAULT 0,
+        mindset_risk INTEGER DEFAULT 0,
+        behavior_risk INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE groups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     ''');
@@ -192,6 +209,22 @@ class DatabaseHelper {
           name TEXT NOT NULL,
           student_id TEXT NOT NULL UNIQUE,
           device_id TEXT NOT NULL UNIQUE,
+          group_name TEXT,
+          score INTEGER DEFAULT 0,
+          knowledge INTEGER DEFAULT 0,
+          literacy INTEGER DEFAULT 0,
+          overall INTEGER DEFAULT 0,
+          trend_risk INTEGER DEFAULT 0,
+          ability_risk INTEGER DEFAULT 0,
+          mindset_risk INTEGER DEFAULT 0,
+          behavior_risk INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE groups (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL UNIQUE,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       ''');
