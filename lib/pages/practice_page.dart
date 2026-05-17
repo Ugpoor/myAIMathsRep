@@ -11,6 +11,7 @@ import '../models/practice_database_models.dart';
 import '../models/practice_models.dart' as pm;
 import '../data/fake_curriculum_data.dart';
 import '../data/fake_practice_data.dart';
+import '../data/fake_student_data.dart';
 import '../services/practice_generator_service.dart';
 import '../services/llm_service.dart';
 
@@ -53,10 +54,16 @@ class _PracticePageState extends State<PracticePage> {
   bool _showPracticeDetail = false;
   bool _showStudentDetail = false;
   bool _hasGenerated = false;
+  bool _showOverview = false;
+  bool _showErratum = false;
   pm.GeneratedPractice? _generatedPractice;
   PracticeRecord? _selectedPractice;
   PracticeStudentRecord? _selectedStudentRecord;
   final Set<String> _selectedRows = {};
+  final Map<String, String> _erratumMap = {};
+  final Map<String, List<PracticeQuestion>> _generatedQuestions = {};
+  final Map<String, List<PracticeQuestion>> _savedPracticeQuestions = {};
+  bool _showAllQuestions = false;
 
   String _generateMode = 'AI生成';
   String _aiDifficulty = '不变';
@@ -69,6 +76,9 @@ class _PracticePageState extends State<PracticePage> {
   final PracticeGeneratorService _generatorService = PracticeGeneratorService();
   final LlmService _llmService = LlmService();
   bool _isGenerating = false;
+  bool _showGenerationDialog = false;
+  final List<Map<String, dynamic>> _generationProgress = [];
+  final ScrollController _scrollController = ScrollController();
 
   late List<PracticeRecord> _practiceRecords;
 
@@ -95,11 +105,17 @@ class _PracticePageState extends State<PracticePage> {
     setState(() {
       _isEditing = true;
       _hasGenerated = false;
+      _generatedQuestions.clear();
       _generateMode = 'AI生成';
       _aiDifficulty = '不变';
       _topicDiffusion = '不扩散';
       _selectedKnowledgeFence.clear();
       _excludedStudents.clear();
+      // 默认排除30个学生，只保留前6个进行测试
+      final allStudents = studentData.map((s) => s['name'] as String).toList();
+      if (allStudents.length > 6) {
+        _excludedStudents.addAll(allStudents.sublist(6));
+      }
       _manualDifficulty = '中';
       _selectedKnowledgePoints.clear();
       _timeController.text = '15';
@@ -109,7 +125,11 @@ class _PracticePageState extends State<PracticePage> {
   void _cancelEditing() {
     setState(() {
       _isEditing = false;
+      _hasGenerated = false;
+      _generatedQuestions.clear();
       _selectedRows.clear();
+      _showGenerationDialog = false;
+      _generationProgress.clear();
     });
   }
 
@@ -121,13 +141,17 @@ class _PracticePageState extends State<PracticePage> {
       return;
     }
 
+    // 清空之前的生成数据
     setState(() {
       _isGenerating = true;
       _aiMessage = '正在调用AI分析学生知识点缺失和错题记录...';
+      _generationProgress.clear();
+      _generatedQuestions.clear();
+      _showGenerationDialog = true;
     });
 
-    // 默认所有学生参与
-    final allStudents = ['张三', '李四', '王五', '赵六', '钱七', '孙八'];
+    // 默认所有学生参与（从fake数据中获取36个学生）
+    final allStudents = studentData.map((s) => s['name'] as String).toList();
     final participatingStudents = allStudents
         .where((name) => !_excludedStudents.contains(name))
         .toList();
@@ -143,13 +167,30 @@ class _PracticePageState extends State<PracticePage> {
           _errorRecords,
         );
 
-        final weakPoints = profile.weakKnowledgePoints.isNotEmpty
-            ? profile.weakKnowledgePoints.join('、')
-            : '综合练习';
+        // 获取当前学生的数据 - 提前到这里获取
+        final student = studentData.firstWhere(
+          (s) => s['studentId'] == studentId,
+          orElse: () => {},
+        );
+
+        // 获取学生的薄弱知识点和错题
+        final studentWeakPoints =
+            (student['weakKnowledgePoints'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
+
+        final studentErrors =
+            (student['errorQuestions'] as List<dynamic>?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
 
         final knowledge = _selectedKnowledgePoints.isNotEmpty
             ? _selectedKnowledgePoints.join('、')
-            : weakPoints;
+            : (studentWeakPoints.isNotEmpty
+                  ? studentWeakPoints.join('、')
+                  : '综合练习');
 
         final difficulty = _aiDifficulty == '不变' ? '中等' : _aiDifficulty;
 
@@ -167,55 +208,73 @@ class _PracticePageState extends State<PracticePage> {
 - 相关主题：${curriculum.relatedTopics.join('、')}''';
         }
 
+        setState(() {
+          _generationProgress.add({
+            'studentName': studentName,
+            'studentId': studentId,
+            'knowledge': knowledge,
+            'difficulty': difficulty,
+            'status': '生成中...',
+            'progress': '正在分析知识点...',
+          });
+        });
+
+        // 滚动到最新添加的项
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+
+        final errorsText = studentErrors
+            .map(
+              (e) =>
+                  '- ${e['content']} (正确答案: ${e['correctAnswer']}, 错误答案: ${e['wrongAnswer']})',
+            )
+            .join('\n');
+
+        final timeLimit = int.tryParse(_timeController.text) ?? 15;
+        final questionCount = (timeLimit / 3).ceil(); // 估算每道题需要3分钟
+
         final llmPrompt =
-            '''你是一位专业的数学练习生成专家。请为初中生生成5道个性化练习题。
+            '''结合以下知识点：$knowledge
+参考以下错题：
+${errorsText.isEmpty ? '（无错题）' : errorsText}
 
-学生信息：
-- 学生姓名：$studentName
-- 学生ID：$studentId
-- 薄弱知识点：$weakPoints
-- 目标知识点：$knowledge
-- 难度要求：$difficulty$curriculumRequirements
-
-题目要求：
-1. 针对学生的薄弱知识点生成练习题
-2. 严格遵循考纲要求
-3. 包含不同题型的题目（选择题、填空题、解答题）
-4. 每道题目都要有详细的解题步骤和答案
-
-输出格式（严格遵循JSON格式）：
+针对此生成类似难度的题目和答案，并按照以下格式：
 {
-  "questions": [
+  "题目表": [
     {
-      "number": 1,
-      "type": "选择题",
-      "knowledgePoint": "知识点名称",
-      "content": "题目内容",
-      "options": ["A. 选项1", "B. 选项2", "C. 选项3", "D. 选项4"],
-      "answer": "正确答案",
-      "solution": "解题步骤"
+      "题号": "1",
+      "题目": "具体题目",
+      "分值": 5
     },
     {
-      "number": 2,
-      "type": "填空题",
-      "knowledgePoint": "知识点名称",
-      "content": "题目内容",
-      "answer": "正确答案",
-      "solution": "解题步骤"
+      "题号": "2",
+      "题目": "具体题目",
+      "分值": 5
+    }
+  ],
+  "答案表": [
+    {
+      "题号": "1",
+      "答案": "答案",
+      "解析": "详细解析"
     },
     {
-      "number": 3,
-      "type": "解答题",
-      "knowledgePoint": "知识点名称",
-      "content": "题目内容",
-      "answer": "正确答案",
-      "solution": "解题步骤"
+      "题号": "2",
+      "答案": "答案",
+      "解析": "详细解析"
     }
   ]
 }
+生成约$timeLimit分钟答题量的考题（大约 $questionCount 道题）。''';
 
-请直接输出JSON格式，不要添加其他文字说明。''';
-
+        List<PracticeQuestion> practiceQuestions = [];
         try {
           final result = await _llmService.generateResponse(llmPrompt);
 
@@ -225,126 +284,322 @@ class _PracticePageState extends State<PracticePage> {
             final questions = _parseQuestionsFromResponse(responseText);
 
             if (questions.isNotEmpty) {
-              final practiceQuestions = questions.map((q) {
-                return pm.PracticeQuestion(
-                  questionId: 'P${q['number']}',
+              int questionNum = 1;
+              practiceQuestions = questions.map((q) {
+                return PracticeQuestion(
+                  id: 'Q${studentId}_$questionNum',
+                  practiceId: '',
+                  studentId: studentId,
+                  number: questionNum++,
+                  type: q['type'] ?? '解答题',
                   content: q['content'] ?? '',
+                  options: q['options']?.join(',') ?? '',
                   answer: q['answer'] ?? '',
-                  difficulty: difficulty,
+                  solution: q['solution'] ?? '',
                   knowledgePoint: q['knowledgePoint'] ?? knowledge,
-                  sourceType: 'AI生成',
+                  difficulty: difficulty,
                 );
               }).toList();
-
-              final practice = pm.GeneratedPractice(
-                practiceId: 'PR${DateTime.now().millisecondsSinceEpoch}',
-                studentId: studentId,
-                studentName: studentName,
-                questions: practiceQuestions,
-                generatedDate: DateTime.now(),
-                targetKnowledgePoint: knowledge,
-                difficulty: difficulty,
-              );
-
-              setState(() {
-                _generatedPractice = practice;
-                _showPracticeDetail = true;
-                _hasGenerated = true;
-                _aiMessage =
-                    '✅ AI已为$studentName生成个性化练习题！\n'
-                    '薄弱知识点：$weakPoints\n'
-                    '生成题目数：${practiceQuestions.length}道\n'
-                    '点击"查看详情"查看生成的练习题。';
-              });
             } else {
-              setState(() {
-                _aiMessage = '⚠️ AI响应格式解析失败，使用传统方式生成...';
-              });
-              _generatePracticeFallback(studentName, studentId, profile);
+              practiceQuestions = _generatePracticeFallbackQuestions(
+                studentName,
+                studentId,
+                profile,
+                knowledge,
+                difficulty,
+              );
             }
           } else {
-            setState(() {
-              _aiMessage = '⚠️ AI生成失败：${result['response']}，使用传统方式生成...';
-            });
-            _generatePracticeFallback(studentName, studentId, profile);
+            practiceQuestions = _generatePracticeFallbackQuestions(
+              studentName,
+              studentId,
+              profile,
+              knowledge,
+              difficulty,
+            );
           }
         } catch (e) {
-          setState(() {
-            _aiMessage = '⚠️ AI生成出错：$e，使用传统方式生成...';
-          });
-          _generatePracticeFallback(studentName, studentId, profile);
+          practiceQuestions = _generatePracticeFallbackQuestions(
+            studentName,
+            studentId,
+            profile,
+            knowledge,
+            difficulty,
+          );
         }
+
+        // 保存该学生的题目
+        _generatedQuestions[studentId] = practiceQuestions;
+
+        setState(() {
+          final idx = _generationProgress.indexWhere(
+            (p) => p['studentName'] == studentName,
+          );
+          if (idx >= 0) {
+            _generationProgress[idx]['status'] = '✅ 完成';
+            _generationProgress[idx]['progress'] =
+                '已生成${practiceQuestions.length}道题目';
+          }
+        });
       }
+
+      // 完成生成，显示保存按钮
+      setState(() {
+        _hasGenerated = true;
+        _isGenerating = false;
+        _aiMessage = '✅ AI已为${participatingStudents.length}位同学生成个性化练习题！请点击保存。';
+      });
     } else {
-      // 默认所有学生参与
-      final allStudents = ['张三', '李四', '王五', '赵六', '钱七', '孙八'];
-      final participatingStudents = allStudents
+      // 人工配置模式
+      final allStudentsManual = ['张三', '李四', '王五', '赵六', '钱七', '孙八'];
+      final participatingStudentsManual = allStudentsManual
           .where((name) => !_excludedStudents.contains(name))
           .toList();
 
-      final newId =
-          'P${(_practiceRecords.length + 1).toString().padLeft(3, '0')}';
-      final now = DateTime.now();
+      for (final studentName in participatingStudentsManual) {
+        final studentId =
+            _findStudentId(studentName) ?? studentName.hashCode.toString();
+        final profile = _generatorService.generateStudentProfile(
+          studentId,
+          studentName,
+          _errorRecords,
+        );
+        final knowledge = _selectedKnowledgePoints.isNotEmpty
+            ? _selectedKnowledgePoints.join('、')
+            : '综合';
+        final difficulty = _manualDifficulty;
 
-      final studentRecords = participatingStudents.map((name) {
-        final studentId = _findStudentId(name) ?? name.hashCode.toString();
-        return PracticeStudentRecord(
-          id: 'PS${DateTime.now().millisecondsSinceEpoch}_${name.hashCode}',
+        setState(() {
+          _generationProgress.add({
+            'studentName': studentName,
+            'studentId': studentId,
+            'knowledge': knowledge,
+            'difficulty': difficulty,
+            'status': '生成中...',
+            'progress': '正在生成题目...',
+          });
+        });
+
+        // 滚动到最新添加的项
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+
+        final practiceQuestions = _generatePracticeFallbackQuestions(
+          studentName,
+          studentId,
+          profile,
+          knowledge,
+          difficulty,
+        );
+
+        _generatedQuestions[studentId] = practiceQuestions;
+
+        setState(() {
+          final idx = _generationProgress.indexWhere(
+            (p) => p['studentName'] == studentName,
+          );
+          if (idx >= 0) {
+            _generationProgress[idx]['status'] = '✅ 完成';
+            _generationProgress[idx]['progress'] =
+                '已生成${practiceQuestions.length}道题目';
+          }
+        });
+      }
+
+      setState(() {
+        _hasGenerated = true;
+        _isGenerating = false;
+        _aiMessage = '✅ 已为${participatingStudentsManual.length}位同学生成练习题！请点击保存。';
+      });
+    }
+  }
+
+  void _saveGeneratedPractice() {
+    if (_generatedQuestions.isEmpty) {
+      setState(() {
+        _aiMessage = '没有题目可以保存';
+      });
+      return;
+    }
+
+    final newId =
+        'P${(_practiceRecords.length + 1).toString().padLeft(3, '0')}';
+    final now = DateTime.now();
+
+    final studentRecords = <PracticeStudentRecord>[];
+
+    // 为每个学生创建记录并更新题目中的practiceId
+    _generatedQuestions.forEach((studentId, questions) {
+      final updatedQuestions = questions.map((q) {
+        return PracticeQuestion(
+          id: q.id,
           practiceId: newId,
-          studentId: studentId,
-          studentName: name,
-          status: '未开始',
-          score: null,
-          totalQuestions: 5,
-          correctCount: 0,
-          completedAt: null,
+          studentId: q.studentId,
+          number: q.number,
+          type: q.type,
+          content: q.content,
+          options: q.options,
+          answer: q.answer,
+          solution: q.solution,
+          knowledgePoint: q.knowledgePoint,
+          difficulty: q.difficulty,
+          studentAnswer: null, // 新生成的题目还没有学生答案
+          isCorrect: null,
+          aiComment: null,
         );
       }).toList();
 
-      final newPractice = PracticeRecord(
-        id: newId,
-        title:
-            '${_selectedKnowledgePoints.isNotEmpty ? _selectedKnowledgePoints.join('、') : '综合练习'}',
-        topic: _selectedKnowledgePoints.isNotEmpty
-            ? _selectedKnowledgePoints.join('、')
-            : '综合',
-        generatedAt: now,
-        status: '未开始',
-        students: studentRecords,
-      );
+      // 保存题目
+      _savedPracticeQuestions[newId + '_' + studentId] = updatedQuestions;
 
-      setState(() {
-        _practiceRecords.insert(0, newPractice);
-        _aiMessage = '人工配置练习已生成，共${participatingStudents.length}位同学参与';
-        _isEditing = false;
-        _hasGenerated = true;
-      });
-    }
+      // 找到学生姓名
+      String studentName = '';
+      for (final student in studentData) {
+        if (student['studentId'] == studentId) {
+          studentName = student['name'] as String;
+          break;
+        }
+      }
+
+      // 创建学生记录
+      studentRecords.add(
+        PracticeStudentRecord(
+          id: 'PS${now.millisecondsSinceEpoch}_${studentId.hashCode}',
+          practiceId: newId,
+          studentId: studentId,
+          studentName: studentName,
+          status: '未开始',
+          score: null,
+          totalQuestions: updatedQuestions.length,
+          correctCount: 0,
+          completedAt: null,
+        ),
+      );
+    });
+
+    final newPractice = PracticeRecord(
+      id: newId,
+      title:
+          '${_selectedKnowledgePoints.isNotEmpty ? _selectedKnowledgePoints.join('、') : '综合练习'}',
+      topic: _selectedKnowledgePoints.isNotEmpty
+          ? _selectedKnowledgePoints.join('、')
+          : '综合',
+      generatedAt: now,
+      status: '未开始',
+      students: studentRecords,
+    );
 
     setState(() {
-      _isGenerating = false;
+      _practiceRecords.insert(0, newPractice);
+      _isEditing = false;
+      _hasGenerated = false;
+      _showGenerationDialog = false;
+      _generationProgress.clear();
+      _generatedQuestions.clear();
+      _aiMessage = '✅ 练习已保存成功！';
     });
   }
 
-  List<Map<String, String>> _parseQuestionsFromResponse(String responseText) {
-    final questions = <Map<String, String>>[];
+  List<Map<String, dynamic>> _parseQuestionsFromResponse(String responseText) {
+    final questions = <Map<String, dynamic>>[];
 
     try {
-      final regex = RegExp(
-        r'"number"\s*:\s*(\d+).*?"type"\s*:\s*"([^"]+)".*?"knowledgePoint"\s*:\s*"([^"]+)".*?"content"\s*:\s*"([^"]+)".*?"answer"\s*:\s*"([^"]+)".*?"solution"\s*:\s*"([^"]+)"',
-        multiLine: true,
-        dotAll: true,
-      );
+      // 尝试解析新格式的 JSON
+      final jsonStart = responseText.indexOf('{');
+      final jsonEnd = responseText.lastIndexOf('}') + 1;
+      if (jsonStart >= 0 && jsonEnd > jsonStart) {
+        final jsonStr = responseText.substring(jsonStart, jsonEnd);
 
-      for (final match in regex.allMatches(responseText)) {
-        questions.add({
-          'number': match.group(1) ?? '',
-          'type': match.group(2) ?? '',
-          'knowledgePoint': match.group(3) ?? '',
-          'content': match.group(4) ?? '',
-          'answer': match.group(5) ?? '',
-          'solution': match.group(6) ?? '',
-        });
+        try {
+          // 这里需要解析 JSON，但为了简单，我们使用正则匹配
+          // 匹配题目表
+          final questionReg = RegExp(
+            r'"题号"\s*:\s*"(\d+)".*?"题目"\s*:\s*"([^"]+)"',
+            multiLine: true,
+            dotAll: true,
+          );
+
+          final answerReg = RegExp(
+            r'"题号"\s*:\s*"(\d+)".*?"答案"\s*:\s*"([^"]+)".*?"解析"\s*:\s*"([^"]+)"',
+            multiLine: true,
+            dotAll: true,
+          );
+
+          final questionMatches = questionReg.allMatches(jsonStr).toList();
+          final answerMatches = answerReg.allMatches(jsonStr).toList();
+
+          for (int i = 0; i < questionMatches.length; i++) {
+            final qMatch = questionMatches[i];
+            final number = qMatch.group(1)!;
+            final content = qMatch.group(2)!;
+
+            String answer = '';
+            String solution = '';
+
+            // 找对应的答案
+            for (final aMatch in answerMatches) {
+              if (aMatch.group(1) == number) {
+                answer = aMatch.group(2)!;
+                solution = aMatch.group(3)!;
+                break;
+              }
+            }
+
+            questions.add({
+              'number': number,
+              'type': '解答题',
+              'knowledgePoint': _selectedKnowledgePoints.isNotEmpty
+                  ? _selectedKnowledgePoints.first
+                  : '综合',
+              'content': content,
+              'options': null,
+              'answer': answer,
+              'solution': solution,
+            });
+          }
+        } catch (e) {
+          debugPrint('JSON 解析错误: $e');
+        }
+      }
+
+      // 如果新格式没解析到，尝试旧格式
+      if (questions.isEmpty) {
+        final regex = RegExp(
+          r'"number"\s*:\s*(\d+).*?"type"\s*:\s*"([^"]+)".*?"knowledgePoint"\s*:\s*"([^"]+)".*?"content"\s*:\s*"([^"]+)"(?:.*?"options"\s*:\s*(\[[^\]]+\]))?.*?"answer"\s*:\s*"([^"]+)".*?"solution"\s*:\s*"([^"]+)"',
+          multiLine: true,
+          dotAll: true,
+        );
+
+        for (final match in regex.allMatches(responseText)) {
+          List<String>? options;
+          final optionsString = match.group(5);
+          if (optionsString != null) {
+            try {
+              final regexOption = RegExp(r'"([^"]+)"');
+              final matches = regexOption.allMatches(optionsString);
+              options = matches.map((m) => m.group(1)!).toList();
+            } catch (e) {
+              options = null;
+            }
+          }
+
+          questions.add({
+            'number': match.group(1) ?? '',
+            'type': match.group(2) ?? '',
+            'knowledgePoint': match.group(3) ?? '',
+            'content': match.group(4) ?? '',
+            'options': options,
+            'answer': match.group(6) ?? '',
+            'solution': match.group(7) ?? '',
+          });
+        }
       }
 
       if (questions.isEmpty) {
@@ -366,6 +621,7 @@ class _PracticePageState extends State<PracticePage> {
                 'type': currentType ?? '解答题',
                 'knowledgePoint': currentKnowledge ?? '综合',
                 'content': currentContent,
+                'options': null,
                 'answer': currentAnswer ?? '',
                 'solution': solutionBuffer.toString().trim(),
               });
@@ -411,6 +667,7 @@ class _PracticePageState extends State<PracticePage> {
             'type': currentType ?? '解答题',
             'knowledgePoint': currentKnowledge ?? '综合',
             'content': currentContent,
+            'options': null,
             'answer': currentAnswer ?? '',
             'solution': solutionBuffer.toString().trim(),
           });
@@ -423,87 +680,138 @@ class _PracticePageState extends State<PracticePage> {
     return questions;
   }
 
-  void _generatePracticeFallback(
+  List<PracticeQuestion> _generatePracticeFallbackQuestions(
     String studentName,
     String studentId,
     pm.StudentKnowledgeProfile profile,
+    String knowledge,
+    String difficulty,
   ) {
-    final config = pm.PracticeGeneratorConfig(
-      difficultyAdjustment: _aiDifficulty,
-      diffusionLevel: _topicDiffusion,
-      knowledgeFence: _selectedKnowledgeFence.toList(),
-      targetQuestionCount: 5,
-      timeLimit: int.tryParse(_timeController.text) ?? 30,
-      excludedStudentIds: _excludedStudents.toList(),
-    );
+    // 创建完整的示例题目
+    final sampleQuestions = [
+      {
+        'number': 1,
+        'type': '选择题',
+        'knowledgePoint': knowledge,
+        'content': '已知二次函数 y = x² - 4x + 3，下列说法正确的是：',
+        'options': 'A.开口向下|B.对称轴 x = 2|C.顶点 (2,1)|D.与 x 轴交点为 (1,0) 和 (3,0)',
+        'answer': 'B',
+        'solution':
+            '二次函数 y = x² - 4x + 3 可化为 y = (x - 2)² - 1，对称轴为 x = 2，顶点为 (2,-1)，开口向上，与 x 轴交点为 (1,0) 和 (3,0)。',
+      },
+      {
+        'number': 2,
+        'type': '填空题',
+        'knowledgePoint': knowledge,
+        'content': '二次函数 y = 2x² + 4x - 6 的顶点坐标是 ______',
+        'options': null,
+        'answer': '(-1, -8)',
+        'solution': 'y = 2(x² + 2x) - 6 = 2(x + 1)² - 8，顶点坐标为 (-1, -8)',
+      },
+      {
+        'number': 3,
+        'type': '解答题',
+        'knowledgePoint': knowledge,
+        'content': '已知二次函数图像经过点 (0,3)、(1,0)、(3,0)，求函数解析式。',
+        'options': null,
+        'answer': 'y = x² - 4x + 3',
+        'solution':
+            '设 y = a(x - 1)(x - 3)，代入 (0,3) 得 3 = 3a，a = 1，所以 y = x² - 4x + 3',
+      },
+      {
+        'number': 4,
+        'type': '选择题',
+        'knowledgePoint': knowledge,
+        'content': '若二次函数 y = ax² + bx + c 的图像与 x 轴有两个交点，则：',
+        'options': 'A.a > 0|B.Δ > 0|C.b² - 4ac < 0|D.c = 0',
+        'answer': 'B',
+        'solution': '二次函数与 x 轴有两个交点意味着判别式 Δ = b² - 4ac > 0',
+      },
+      {
+        'number': 5,
+        'type': '解答题',
+        'knowledgePoint': knowledge,
+        'content': '求二次函数 y = x² - 2x - 3 的单调区间。',
+        'options': null,
+        'answer': '单调递减区间 (-∞,1)，单调递增区间 (1,+∞)',
+        'solution': 'y = (x - 1)² - 4，顶点为 (1,-4)，开口向上，所以在 (-∞,1) 递减，(1,+∞) 递增',
+      },
+    ];
 
-    final practice = _generatorService.generatePractice(
-      studentId: studentId,
-      studentName: studentName,
-      errors: _errorRecords,
-      config: config,
-    );
-
-    setState(() {
-      _generatedPractice = practice;
-      _showPracticeDetail = true;
-      _hasGenerated = true;
-      _aiMessage =
-          '已为$studentName生成个性化练习题！\n'
-          '薄弱知识点：${profile.weakKnowledgePoints.isNotEmpty ? profile.weakKnowledgePoints.join("、") : "无"}\n'
-          '生成题目数：${practice.questions.length}道\n'
-          '点击"查看详情"查看生成的练习题。';
-    });
+    int num = 1;
+    return sampleQuestions.map((q) {
+      return PracticeQuestion(
+        id: 'Q${studentId}_$num',
+        practiceId: '',
+        studentId: studentId,
+        number: num++,
+        type: q['type'] as String,
+        content: q['content'] as String,
+        options: q['options'] as String?,
+        answer: q['answer'] as String,
+        solution: q['solution'] as String,
+        knowledgePoint: q['knowledgePoint'] as String,
+        difficulty: difficulty,
+        studentAnswer: null,
+        isCorrect: null,
+        aiComment: null,
+      );
+    }).toList();
   }
 
   String? _findStudentId(String studentName) {
-    final nameToId = {
-      '张三': '346001',
-      '李四': '346002',
-      '王五': '346003',
-      '赵六': '346004',
-      '钱七': '346005',
-      '孙八': '346006',
-    };
-    return nameToId[studentName];
+    for (final student in studentData) {
+      if (student['name'] == studentName) {
+        return student['studentId'] as String;
+      }
+    }
+    return null;
   }
 
-  void _saveGeneratedPractice() {
-    if (_generatedPractice == null) return;
+  Widget _buildStudentDropdown() {
+    final allStudents = studentData.map((s) => s['name'] as String).toList();
+    final availableStudents = allStudents
+        .where((name) => !_excludedStudents.contains(name))
+        .toList();
 
-    final practice = _generatedPractice!;
-    final newId =
-        'P${(_practiceRecords.length + 1).toString().padLeft(3, '0')}';
-
-    final studentRecord = PracticeStudentRecord(
-      id: 'PS${DateTime.now().millisecondsSinceEpoch}',
-      practiceId: newId,
-      studentId: practice.studentId,
-      studentName: practice.studentName,
-      status: '未开始',
-      score: null,
-      totalQuestions: practice.questions.length,
-      correctCount: 0,
-      completedAt: null,
+    return Autocomplete<String>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return availableStudents;
+        }
+        return availableStudents.where(
+          (name) =>
+              name.toLowerCase().contains(textEditingValue.text.toLowerCase()),
+        );
+      },
+      displayStringForOption: (String option) => option,
+      fieldViewBuilder:
+          (
+            BuildContext context,
+            TextEditingController controller,
+            FocusNode focusNode,
+            VoidCallback onFieldSubmitted,
+          ) {
+            return TextField(
+              controller: controller,
+              focusNode: focusNode,
+              decoration: const InputDecoration(
+                labelText: '搜索添加排除学生',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                hintText: '输入学生姓名搜索...',
+              ),
+            );
+          },
+      onSelected: (String selection) {
+        setState(() {
+          _excludedStudents.add(selection);
+        });
+      },
     );
-
-    final newPractice = PracticeRecord(
-      id: newId,
-      title: practice.targetKnowledgePoint,
-      topic: practice.targetKnowledgePoint,
-      generatedAt: DateTime.now(),
-      status: '未开始',
-      students: [studentRecord],
-    );
-
-    setState(() {
-      _practiceRecords.insert(0, newPractice);
-      _isEditing = false;
-      _showPracticeDetail = false;
-      _hasGenerated = false;
-      _generatedPractice = null;
-      _aiMessage = '✅ 练习已保存！';
-    });
   }
 
   void _returnFromDetail() {
@@ -515,7 +823,7 @@ class _PracticePageState extends State<PracticePage> {
       if (_isEditing && _hasGenerated) {
         _isEditing = false;
         _hasGenerated = false;
-        _generatedPractice = null;
+        _generatedQuestions.clear();
       }
     });
   }
@@ -548,8 +856,12 @@ class _PracticePageState extends State<PracticePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: _isEditing
                         ? _buildEditView()
-                        : (_showPracticeDetail && _generatedPractice != null
-                              ? _buildPracticeDetailView()
+                        : (_showPracticeDetail &&
+                                  (_selectedPractice != null ||
+                                      _generatedPractice != null)
+                              ? (_selectedPractice != null
+                                    ? _buildPracticeRecordDetailView()
+                                    : _buildPracticeDetailView())
                               : _buildContent()),
                   ),
                 ),
@@ -588,24 +900,110 @@ class _PracticePageState extends State<PracticePage> {
                 ),
               ],
             ),
-            if (_isGenerating)
+            if (_showGenerationDialog)
               Container(
                 color: Colors.black54,
-                child: const Center(
+                child: Center(
                   child: Card(
                     child: Padding(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text('正在调用AI生成练习题...'),
-                          SizedBox(height: 8),
                           Text(
-                            '请稍候，正在分析学生薄弱知识点',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            _hasGenerated ? '✅ 练习题生成完成' : 'AI正在生成练习题',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                          const SizedBox(height: 16),
+                          Container(
+                            width: 300,
+                            height: 250,
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: _generationProgress.length,
+                              itemBuilder: (context, index) {
+                                final progress = _generationProgress[index];
+                                return Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              '${progress['studentName']}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              progress['status'] ?? '',
+                                              style: TextStyle(
+                                                color:
+                                                    progress['status'] == '✅ 完成'
+                                                    ? Colors.green
+                                                    : Colors.orange,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text('学号: ${progress['studentId']}'),
+                                        Text('知识点: ${progress['knowledge']}'),
+                                        Text('难度: ${progress['difficulty']}'),
+                                        Text(
+                                          progress['progress'] ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          if (_hasGenerated)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _showGenerationDialog = false;
+                                      _generationProgress.clear();
+                                      _generatedQuestions.clear();
+                                      _hasGenerated = false;
+                                      _isGenerating = false;
+                                      _aiMessage = '已取消生成';
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey,
+                                  ),
+                                  child: const Text('取消'),
+                                ),
+                                const SizedBox(width: 20),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _saveGeneratedPractice();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                  ),
+                                  child: const Text('保存练习'),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -881,30 +1279,45 @@ class _PracticePageState extends State<PracticePage> {
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '所有学生默认参与，以下为排除名单：',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+          Row(
+            children: [
+              const Text(
+                '已排除',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${_excludedStudents.length}人',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
+                '（默认全部学生参与）',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
+          _buildStudentDropdown(),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: ['张三', '李四', '王五', '赵六', '钱七', '孙八']
-                .map(
-                  (name) => FilterChip(
-                    label: Text(name),
-                    selected: _excludedStudents.contains(name),
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _excludedStudents.add(name);
-                        } else {
-                          _excludedStudents.remove(name);
-                        }
-                      });
-                    },
-                  ),
-                )
-                .toList(),
+            runSpacing: 4,
+            children: _excludedStudents.map((name) {
+              return Chip(
+                label: Text(name, style: const TextStyle(fontSize: 12)),
+                deleteIcon: const Icon(Icons.close, size: 16),
+                onDeleted: () {
+                  setState(() {
+                    _excludedStudents.remove(name);
+                  });
+                },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              );
+            }).toList(),
           ),
           const SizedBox(height: 16),
           Row(
@@ -1005,6 +1418,33 @@ class _PracticePageState extends State<PracticePage> {
 
   Widget _buildPracticeRecordDetailView() {
     final record = _selectedPractice!;
+
+    // 获取练习的所有题目
+    List<PracticeQuestion> allQuestions = [];
+    for (final student in record.students) {
+      final savedKey = record.id + '_' + student.studentId;
+      if (_savedPracticeQuestions.containsKey(savedKey)) {
+        final questions = _savedPracticeQuestions[savedKey]!;
+        if (allQuestions.isEmpty && questions.isNotEmpty) {
+          // 取第一个学生的题目作为样例
+          allQuestions = questions;
+        }
+      } else {
+        // 从 FakePracticeData 获取题目
+        final questions = FakePracticeData.getQuestionsByPracticeAndStudent(
+          record.id,
+          student.studentId,
+        );
+        if (allQuestions.isEmpty && questions.isNotEmpty) {
+          allQuestions = questions;
+        }
+      }
+    }
+
+    if (_showStudentDetail && _selectedStudentRecord != null) {
+      return _buildStudentDetailView();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1025,6 +1465,8 @@ class _PracticePageState extends State<PracticePage> {
                 _showPracticeDetail = false;
                 _selectedPractice = null;
                 _selectedStudentRecord = null;
+                _showAllQuestions = false;
+                _showStudentDetail = false;
               }),
               child: const Text('返回列表'),
             ),
@@ -1053,56 +1495,178 @@ class _PracticePageState extends State<PracticePage> {
           '生成时间: ${record.generatedAt.year}/${record.generatedAt.month}/${record.generatedAt.day} ${record.generatedAt.hour}:${record.generatedAt.minute.toString().padLeft(2, '0')}',
         ),
         const SizedBox(height: 12),
-        const Text(
-          '学生答题情况:',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        // 切换标签
+        Row(
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _showAllQuestions = false;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: !_showAllQuestions ? Colors.blue : Colors.grey,
+              ),
+              child: const Text('学生答题'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _showAllQuestions = true;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _showAllQuestions ? Colors.blue : Colors.grey,
+              ),
+              child: const Text('所有题目'),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: ListView.builder(
-            itemCount: record.students.length,
-            itemBuilder: (context, index) {
-              final student = record.students[index];
-              return Card(
-                child: ListTile(
-                  title: Text(student.studentName),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('学号: ${student.studentId}'),
-                      Text('状态: ${student.status}'),
-                      if (student.score != null)
-                        Text(
-                          '得分: ${student.score}/${student.totalQuestions * 20}',
+        const SizedBox(height: 12),
+        if (_showAllQuestions)
+          Expanded(
+            child: allQuestions.isNotEmpty
+                ? ListView.builder(
+                    itemCount: allQuestions.length,
+                    itemBuilder: (context, index) {
+                      final q = allQuestions[index];
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '第${q.number}题 (${q.type})',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '知识点: ${q.knowledgePoint}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(q.content),
+                              const SizedBox(height: 8),
+                              if (q.options != null && q.options!.isNotEmpty)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('选项:'),
+                                    Text(q.options!.replaceAll('|', '\n')),
+                                    const SizedBox(height: 8),
+                                  ],
+                                ),
+                              Row(
+                                children: [
+                                  const Text(
+                                    '正确答案: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    q.answer,
+                                    style: const TextStyle(color: Colors.blue),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                '解答:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(q.solution),
+                            ],
+                          ),
                         ),
-                    ],
-                  ),
-                  trailing: student.status == '已完成' || student.status == '已批阅'
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : student.status == '进行中'
-                      ? const Icon(Icons.hourglass_empty, color: Colors.orange)
-                      : const Icon(Icons.circle, color: Colors.grey),
-                  onTap: () {
-                    setState(() {
-                      _selectedStudentRecord = student;
-                      _showStudentDetail = true;
-                    });
-                  },
+                      );
+                    },
+                  )
+                : const Center(child: Text('暂无题目')),
+          )
+        else
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '学生答题情况:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
-              );
-            },
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: record.students.length,
+                    itemBuilder: (context, index) {
+                      final student = record.students[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(student.studentName),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('学号: ${student.studentId}'),
+                              Text('状态: ${student.status}'),
+                              if (student.score != null)
+                                Text(
+                                  '得分: ${student.score}/${student.totalQuestions * 20}',
+                                ),
+                            ],
+                          ),
+                          trailing:
+                              student.status == '已完成' || student.status == '已批阅'
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                )
+                              : student.status == '进行中'
+                              ? const Icon(
+                                  Icons.hourglass_empty,
+                                  color: Colors.orange,
+                                )
+                              : const Icon(Icons.circle, color: Colors.grey),
+                          onTap: () {
+                            setState(() {
+                              _selectedStudentRecord = student;
+                              _showStudentDetail = true;
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
 
   Widget _buildStudentDetailView() {
     final studentRecord = _selectedStudentRecord!;
-    final questions = FakePracticeData.getQuestionsByPracticeAndStudent(
-      studentRecord.practiceId,
-      studentRecord.studentId,
-    );
+
+    // 首先尝试从保存的题目中获取
+    List<PracticeQuestion> questions = [];
+    final savedKey = studentRecord.practiceId + '_' + studentRecord.studentId;
+    if (_savedPracticeQuestions.containsKey(savedKey)) {
+      questions = _savedPracticeQuestions[savedKey]!;
+    }
+
+    // 如果没有找到，从FakePracticeData获取
+    if (questions.isEmpty) {
+      questions = FakePracticeData.getQuestionsByPracticeAndStudent(
+        studentRecord.practiceId,
+        studentRecord.studentId,
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1283,6 +1847,7 @@ class _PracticePageState extends State<PracticePage> {
     _textController.dispose();
     _timeController.dispose();
     _excludeStudentController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }

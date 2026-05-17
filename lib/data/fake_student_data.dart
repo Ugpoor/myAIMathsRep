@@ -47,6 +47,67 @@ final List<String> _givenNames = [
   '燕',
 ];
 
+final List<String> _knowledgePoints = [
+  '二次函数',
+  '三角形全等',
+  '圆的性质',
+  '一次函数',
+  '反比例函数',
+  '概率统计',
+  '几何证明',
+  '代数方程',
+  '三角函数',
+  '数列',
+];
+
+final List<String> _errorQuestionTemplates = [
+  '若二次函数 y = ax² + bx + c 的图像与 x 轴有两个交点，下列说法正确的是',
+  '已知三角形 ABC 和 DEF，AB = DE，BC = EF，还需要什么条件才能证明它们全等',
+  '圆的直径为 10cm，弦 AB = 6cm，则圆心到 AB 的距离为',
+  '一次函数 y = 2x + 3 的图像经过哪个象限',
+  '反比例函数 y = k/x 的图像经过点 (2,3)，则 k 的值为',
+];
+
+List<Map<String, dynamic>> _generateErrorQuestions(String studentId, int count) {
+  final questions = <Map<String, dynamic>>[];
+  final selectedKnowledge = <String>[];
+  
+  for (int i = 0; i < count; i++) {
+    final knowledgePoint = _knowledgePoints[_random.nextInt(_knowledgePoints.length)];
+    selectedKnowledge.add(knowledgePoint);
+    
+    final template = _errorQuestionTemplates[_random.nextInt(_errorQuestionTemplates.length)];
+    
+    questions.add({
+      'questionId': 'EQ${studentId}_$i',
+      'content': template,
+      'knowledgePoint': knowledgePoint,
+      'errorDate': DateTime.now().subtract(Duration(days: _random.nextInt(30) + 1)),
+      'wrongAnswer': ['A', 'B', 'C', 'D'][_random.nextInt(4)],
+      'correctAnswer': ['A', 'B', 'C', 'D'][_random.nextInt(4)],
+    });
+  }
+  
+  return questions;
+}
+
+List<String> _generateWeakPoints(int count) {
+  final points = <String>[];
+  final used = <String>{};
+  
+  for (int i = 0; i < count; i++) {
+    String point;
+    do {
+      point = _knowledgePoints[_random.nextInt(_knowledgePoints.length)];
+    } while (used.contains(point));
+    
+    used.add(point);
+    points.add(point);
+  }
+  
+  return points;
+}
+
 List<Map<String, dynamic>> generateStudentData() {
   final students = <Map<String, dynamic>>[];
 
@@ -66,6 +127,9 @@ List<Map<String, dynamic>> generateStudentData() {
 
     final groupIndex = (i - 1) ~/ 3;
     final groupName = '小组${(groupIndex + 1).toString().padLeft(2, '0')}';
+    
+    final errorCount = 2 + _random.nextInt(4);
+    final weakPointCount = 2 + _random.nextInt(3);
 
     students.add({
       'id': i.toString().padLeft(2, '0'),
@@ -81,6 +145,8 @@ List<Map<String, dynamic>> generateStudentData() {
       'abilityRisk': abilityRisk,
       'mindsetRisk': mindsetRisk,
       'behaviorRisk': behaviorRisk,
+      'errorQuestions': _generateErrorQuestions('2026${i.toString().padLeft(3, '0')}', errorCount),
+      'weakKnowledgePoints': _generateWeakPoints(weakPointCount),
     });
   }
 

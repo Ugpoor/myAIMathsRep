@@ -11,7 +11,9 @@ import '../data/fake_student_data.dart';
 
 /// 学籍管理页面
 class StudentManagementPage extends StatefulWidget {
-  const StudentManagementPage({super.key});
+  final String initialTab;
+
+  const StudentManagementPage({super.key, this.initialTab = '筛选'});
 
   @override
   State<StudentManagementPage> createState() => _StudentManagementPageState();
@@ -25,7 +27,7 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   final TextEditingController _groupController = TextEditingController();
   final TextEditingController _newGroupNameController = TextEditingController();
   String _aiMessage = '学籍管理功能已加载。共管理36名学生。';
-  String _selectedTab = '筛选';
+  late String _selectedTab;
 
   bool _isEditing = false;
   bool _isGroupView = false;
@@ -36,6 +38,15 @@ class _StudentManagementPageState extends State<StudentManagementPage> {
   String? _filterSummary;
 
   final Set<String> _selectedRows = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialTab;
+    if (widget.initialTab == '小组') {
+      _isGroupView = true;
+    }
+  }
 
   static const _filterFields = [
     FilterField(

@@ -80,6 +80,8 @@ class PracticeQuestion {
   final String difficulty;
   final String? studentAnswer;
   final bool? isCorrect;
+  final String? aiComment;
+  final String? erratum;
 
   PracticeQuestion({
     required this.id,
@@ -95,6 +97,8 @@ class PracticeQuestion {
     required this.difficulty,
     this.studentAnswer,
     this.isCorrect,
+    this.aiComment,
+    this.erratum,
   });
 
   Map<String, dynamic> toMap() {
@@ -112,6 +116,8 @@ class PracticeQuestion {
       'difficulty': difficulty,
       'studentAnswer': studentAnswer,
       'isCorrect': isCorrect,
+      'aiComment': aiComment,
+      'erratum': erratum,
     };
   }
 }
